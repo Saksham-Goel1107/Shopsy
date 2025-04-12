@@ -6,20 +6,45 @@ import Cart from './pages/cart';
 import Login from './pages/login';
 import Header from './components/header';
 import Success from "./pages/success"
+import { getToken } from 'firebase/messaging'
+import { messaging } from './firebase'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
+  async function requestPermission(){
+    const permission = Notification.permission;
+    
+    if (permission === 'default') {
+      try {
+        await Notification.requestPermission();
+      } catch (error) {
+        console.error("Error requesting notification permission:", error);
+      }
+    } else if (permission === 'granted') {
+      try {
+      
+        const token = await getToken(messaging, {
+          vapidKey:import.meta.env.VITE_FIREBASE_VAPID_KEY
+        });
+        
+        if (token) {
+          console.log("FCM Token obtained in App:", token);
+          localStorage.setItem('fcmToken', token);
+        }
+      } catch (error) {
+        console.error("Error getting Firebase token:", error);
+      }
+    }
+  }
  
   useEffect(() => {
+    requestPermission();
     const checkAuth = () => {
       setIsAuthenticated(!!localStorage.getItem('token'));
     };
-
     
     window.addEventListener('auth-change', checkAuth);
-    
-    
     window.addEventListener('storage', checkAuth);
     
     return () => {

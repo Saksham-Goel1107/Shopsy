@@ -6,7 +6,7 @@
 
 ## Overview
 
-Shop is a modern, responsive e-commerce website built with React. The application provides a seamless shopping experience with features like user authentication, product browsing, cart management, and secure checkout functionality.
+Shop is a modern, responsive e-commerce website built with React. The application provides a seamless shopping experience with features like user authentication, product browsing, cart management, secure checkout functionality, and push notifications.
 
 ## 🚀 Features
 
@@ -15,6 +15,7 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
 - **Product Details** - View detailed information about each product
 - **Shopping Cart** - Add, remove, and update quantities of products
 - **Payment Processing** - Secure checkout with Stripe payment integration
+- **Push Notifications** - Order confirmations using Firebase Cloud Messaging
 - **Responsive Design** - Optimized for both desktop and mobile devices
 - **Category Filtering** - Filter products by categories
 - **Search Functionality** - Search products by name
@@ -29,16 +30,19 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
   - **Tailwind CSS** - For styling and responsive design
   - **FontAwesome** - For icons and visual elements
   - **React Google reCAPTCHA** - For user verification during login
+  - **Firebase** - For push notifications via Firebase Cloud Messaging
 
 - **Backend:**
   - **Express** - Node.js web application framework for the backend
   - **Stripe** - For secure payment processing
   - **Cors** - For handling cross-origin requests
+  - **Firebase Admin** - For sending server-side notifications
 
 - **APIs:**
   - **Fake Store API** - For product data and authentication
   - **Google reCAPTCHA API** - For security verification
   - **Stripe API** - For payment processing
+  - **Firebase Cloud Messaging API** - For push notifications
 
 - **Storage:**
   - **LocalStorage** - For persisting cart and authentication state
@@ -49,6 +53,7 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
 - npm (v6.0.0 or later)
 - Stripe account for payment processing
 - Google reCAPTCHA keys
+- Firebase project with Cloud Messaging enabled
 
 ## 🔧 Installation
 
@@ -58,16 +63,24 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
    cd shop
    ```
 
-2. Install frontend dependencies
+2. Install Shop dependencies
    ```bash
    npm install
    ```
 
-3. Set up frontend environment variables
-   Create a `.env` file in the shop directory with:
+3. Set up Shop environment variables
+   Create a .env file in the shop directory with:
    ```
    VITE_API_BASE_URL=http://localhost:5000/api
    VITE_REACT_APP_SITE_KEY=your_recaptcha_site_key
+   VITE_FIREBASE_API_KEY=your_firebase_api_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+   VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+   VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+   VITE_FIREBASE_APP_ID=your_firebase_app_id
+   VITE_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id
+   VITE_FIREBASE_VAPID_KEY=your_firebase_vapid_key
    ```
 
 4. Install backend dependencies
@@ -77,16 +90,19 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
    ```
 
 5. Set up backend environment variables
-   Create a `.env` file in the Backend directory with:
+   Create a .env file in the Backend directory with:
    ```
    STRIPE_SECRET_KEY=your_stripe_secret_key
    SITE_SECRET_KEY=your_recaptcha_secret_key
    PORT=5000
+   FIREBASE_PROJECT_ID=your_firebase_project_id
+   FIREBASE_CLIENT_EMAIL=your_firebase_client_email
+   FIREBASE_PRIVATE_KEY=your_firebase_private_key
    ```
 
 6. Start the backend server
    ```bash
-   npm start
+   node index
    ```
 
 7. In a new terminal, start the frontend development server
@@ -117,13 +133,19 @@ Use the following credentials to log in:
 - Remove items from cart
 - Proceed to checkout with Stripe payment
 
+### Notifications
+- Enable browser notifications to receive order confirmations
+- Notifications are sent automatically after successful checkout
+
 ## 📁 Project Structure
 
 ```
 project/
 ├── shop/                   # Frontend
 │   ├── public/
-│   │   └── icon.png
+│   │   ├── firebase-messaging-sw.js
+│   │   ├── icon.png
+│   │   └── vite.svg
 │   ├── src/
 │   │   ├── components/
 │   │   │   └── header.jsx
@@ -134,17 +156,22 @@ project/
 │   │   │   ├── productListing.jsx
 │   │   │   └── success.jsx
 │   │   ├── App.jsx
+│   │   ├── App.css
+│   │   ├── firebase.js
 │   │   ├── index.css
 │   │   └── main.jsx
 │   ├── index.html
 │   ├── package.json
-│   └── vite.config.js
+│   ├── vite.config.js
+│   └── vercel.json
 ├── Backend/                # Backend
 │   ├── api/
+│   │   ├── notification.js
 │   │   ├── stripe.js
 │   │   └── verify-recaptcha.js
 │   ├── index.js
 │   └── package.json
+├── LICENSE
 └── README.md
 ```
 
@@ -164,6 +191,7 @@ Custom backend API endpoints:
 
 - `POST /api/verify-recaptcha` - Verify Google reCAPTCHA tokens
 - `POST /api/stripe/payment` - Create Stripe payment sessions
+- `POST /api/send-notification` - Send Firebase Cloud Messaging notifications
 
 ## 📸 Screenshots
 
@@ -171,7 +199,7 @@ Custom backend API endpoints:
 ![alt text](image-4.png)
 ![alt text](image-2.png)
 ![alt text](image-1.png)
-![alt text](image-3.png)
+![alt text](image-6.png)
 
 ## 🚀 Future Enhancements
 
@@ -180,6 +208,7 @@ Custom backend API endpoints:
 - Order history tracking
 - Wishlist feature
 - Admin dashboard for product management
+- Enhanced notification preferences
 
 ## 👥 Contributors
 
@@ -197,6 +226,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [React](https://reactjs.org/) and [React Router](https://reactrouter.com/) for the frontend framework
 - [Stripe](https://stripe.com/) for the payment processing solution
 - [Google reCAPTCHA](https://www.google.com/recaptcha/) for security verification
+- [Firebase](https://firebase.google.com/) for push notification functionality
 
 ---
 

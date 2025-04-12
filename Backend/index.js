@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import recaptchaRouter from "./api/verify-recaptcha.js";
 import stripeRouter from "./api/stripe.js";
+import notification from "./api/notification.js";
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ app.get("/", (req, res) => {
   res.json({ status: "API is running" });
 });
 
+app.use("/api/send-notification", notification);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
