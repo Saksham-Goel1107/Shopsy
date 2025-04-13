@@ -8,13 +8,15 @@ import Header from './components/header';
 import Success from "./pages/success"
 import { getToken } from 'firebase/messaging'
 import { messaging } from './firebase'
+import Orders from './pages/orders';
+import OrderDetail from './pages/orderDetail';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
-  async function requestPermission(){
+  async function requestPermission() {
     const permission = Notification.permission;
-    
+
     if (permission === 'default') {
       try {
         await Notification.requestPermission();
@@ -23,13 +25,13 @@ function App() {
       }
     } else if (permission === 'granted') {
       try {
-      
+
         const token = await getToken(messaging, {
-          vapidKey:import.meta.env.VITE_FIREBASE_VAPID_KEY
+          vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
         });
-        
+
         if (token) {
-          console.log("FCM Token obtained in App:", token);
+
           localStorage.setItem('fcmToken', token);
         }
       } catch (error) {
@@ -37,16 +39,16 @@ function App() {
       }
     }
   }
- 
+
   useEffect(() => {
     requestPermission();
     const checkAuth = () => {
       setIsAuthenticated(!!localStorage.getItem('token'));
     };
-    
+
     window.addEventListener('auth-change', checkAuth);
     window.addEventListener('storage', checkAuth);
-    
+
     return () => {
       window.removeEventListener('auth-change', checkAuth);
       window.removeEventListener('storage', checkAuth);
@@ -63,6 +65,8 @@ function App() {
         <Route path="/cart" element={isAuthenticated ? <Cart /> : <Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/success" element={<Success />} />
+        <Route path="/orders" element={isAuthenticated ? <Orders /> : <Login />} />
+        <Route path="/orders/:orderId" element={isAuthenticated ? <OrderDetail /> : <Login />} />
       </Routes>
     </>
   );

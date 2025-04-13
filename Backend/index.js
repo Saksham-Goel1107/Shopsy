@@ -1,29 +1,44 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 import recaptchaRouter from "./api/verify-recaptcha.js";
 import stripeRouter from "./api/stripe.js";
 import notification from "./api/notification.js";
+import userRouter from "./api/user.js";
+import ordersRouter from "./api/orders.js";
 
 dotenv.config();
 
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 10000 
+})
+.then(() => {
+  console.log('Connected to MongoDB successfully');
+})
+.catch(err => {
+  console.error('MongoDB connection error:', err);
+});
 
 const allowedOrigins = [
   'http://localhost:5173', 
-  'https://shopify-tau-seven.vercel.app'  
+  'https://shopify-tau-seven.vercel.app',
 ];
-
 
 const app = express();
 
+app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), (req, res) => {
+  req.rawBody = req.body;
+  stripeRouter.post('/webhook', req, res);
+});
 
 app.use(express.json());
 app.use(cors({
   origin: function (origin, callback) {
-    console.log("Request from origin:", origin);
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log(`Origin ${origin} not allowed by CORS`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -33,15 +48,31 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-
 app.use("/api/verify-recaptcha", recaptchaRouter);
 app.use("/api/stripe", stripeRouter);
+app.use("/api/user", userRouter);
+app.use("/api/send-notification", notification);
+app.use("/api/orders", ordersRouter);
 
 app.get("/", (req, res) => {
-  res.json({ status: "API is running" });
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  res.json({ 
+    status: "API is running", 
+    database: dbStatus,
+    endpoints: [
+      '/api/user/address',
+      '/api/stripe/payment',
+      '/api/verify-recaptcha',
+      '/api/send-notification',
+      '/api/orders'
+    ]
+  });
 });
 
-app.use("/api/send-notification", notification);
+app.get("/api/status", (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  res.json({ database: dbStatus });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

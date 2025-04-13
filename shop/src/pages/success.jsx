@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faStore, faClock, faReceipt, faBell } from '@fortawesome/free-solid-svg-icons';
 import { getToken, onMessage } from 'firebase/messaging';
@@ -11,12 +11,44 @@ function Success() {
   const [notificationSent, setNotificationSent] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get('order_id');
 
   useEffect(() => {
-    const randomOrderId = Math.floor(100000 + Math.random() * 900000);
-    const generatedOrderNumber = `ORD-${randomOrderId}`;
-    setOrderNumber(generatedOrderNumber);
+    
+    if (orderId) {
+      setOrderNumber(orderId.substring(0, 8));
+      
+      
+      const checkOrderStatus = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          if (token) {
+            
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              console.log("Order details:", data.order);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to check order status:", error);
+        }
+      };
+      
+      checkOrderStatus();
+    } else {
+     
+      const randomOrderId = Math.floor(100000 + Math.random() * 900000);
+      setOrderNumber(`ORD-${randomOrderId}`);
+    }
 
+    
     localStorage.removeItem('cart');
     window.dispatchEvent(new Event('storage'));
     
@@ -31,8 +63,8 @@ function Success() {
           });
           
           if (token) {
-            sendLocalNotification(generatedOrderNumber);
-            sendCloudNotification(generatedOrderNumber, token);
+            sendLocalNotification(orderNumber || orderId?.substring(0, 8) || 'Unknown');
+            sendCloudNotification(orderNumber || orderId?.substring(0, 8) || 'Unknown', token);
             setNotificationSent(true);
           }
         } catch (error) {
@@ -49,8 +81,8 @@ function Success() {
             });
             
             if (token) {
-              sendLocalNotification(generatedOrderNumber);
-              sendCloudNotification(generatedOrderNumber, token); 
+              sendLocalNotification(orderNumber || orderId?.substring(0, 8) || 'Unknown');
+              sendCloudNotification(orderNumber || orderId?.substring(0, 8) || 'Unknown', token); 
               setNotificationSent(true);
             }
           }
@@ -85,7 +117,7 @@ function Success() {
       clearInterval(countdownInterval);
       unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, orderId, orderNumber]);
   
   const sendLocalNotification = (orderNum) => {
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -101,6 +133,9 @@ function Success() {
         notification.onclick = () => {
           window.focus();
           notification.close();
+          if (orderId) {
+            navigate(`/orders/${orderId}`);
+          }
         };
       } catch (error) {
         console.error("Error creating notification:", error);
@@ -108,27 +143,27 @@ function Success() {
     }
   };
   
-const sendCloudNotification = async (orderNum, token) => {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/notification`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        token,
-        title: 'Order Confirmed! 🛍️',
-        body: `Your order #${orderNum} has been successfully processed. Thank you for shopping with us!`,
-        icon: '/icon.png'
-      })
-    });
-    
-    return await response.json();
-  } catch (error) {
-    console.error("Error sending notification via server:", error);
-    return { success: false, error: error.message };
-  }
-};
+  const sendCloudNotification = async (orderNum, token) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/send-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          token,
+          title: 'Order Confirmed! 🛍️',
+          body: `Your order #${orderNum} has been successfully processed. Thank you for shopping with us!`,
+          icon: '/icon.png'
+        })
+      });
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error sending notification via server:", error);
+      return { success: false, error: error.message };
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -148,6 +183,17 @@ const sendCloudNotification = async (orderNum, token) => {
           <p className="text-gray-600 mt-2">
             Thank you for your purchase. Your order has been processed successfully.
           </p>
+          
+          {orderId && (
+            <div className="mt-2">
+              <Link 
+                to={`/orders/${orderId}`}
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                View Order Details
+              </Link>
+            </div>
+          )}
           
           <div className="mt-3 flex items-center justify-center">
             <FontAwesomeIcon 
@@ -171,13 +217,23 @@ const sendCloudNotification = async (orderNum, token) => {
           </span>
         </div>
         
-        <Link 
-          to="/products" 
-          className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition-all duration-300"
-        >
-          <FontAwesomeIcon icon={faStore} className="mr-2" />
-          Go to Products Now
-        </Link>
+        <div className="flex space-x-4 justify-center">
+          <Link 
+            to="/products" 
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition-all duration-300"
+          >
+            <FontAwesomeIcon icon={faStore} className="mr-2" />
+            Continue Shopping
+          </Link>
+          
+          <Link 
+            to="/orders" 
+            className="inline-block bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg transition-all duration-300"
+          >
+            <FontAwesomeIcon icon={faReceipt} className="mr-2" />
+            View All Orders
+          </Link>
+        </div>
       </div>
     </div>
   );
