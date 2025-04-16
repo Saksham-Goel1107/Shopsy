@@ -123,14 +123,14 @@ function Header() {
               <div className="flex justify-center space-x-3 sm:space-x-4">
                 <button
                   onClick={cancelLogout}
-                  className="px-4 sm:px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-100 focus:outline-none transition-colors duration-300 flex items-center"
+                  className="px-4 sm:px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-100 focus:outline-none transition-colors duration-300 flex items-center cursor-pointer"
                 >
                   <FontAwesomeIcon icon={faTimes} className="mr-2" />
                   Cancel
                 </button>
                 <button
                   onClick={confirmLogout}
-                  className="px-4 sm:px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none transition-colors duration-300 flex items-center"
+                  className="px-4 sm:px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none transition-colors duration-300 flex items-center cursor-pointer"
                 >
                   <FontAwesomeIcon icon={faCheck} className="mr-2" />
                   Logout

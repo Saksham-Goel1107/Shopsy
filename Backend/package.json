@@ -11,13 +11,16 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "firebase-admin": "^13.2.0",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
     "node-fetch": "^3.3.2",
+    "nodemailer": "^6.10.1",
     "stripe": "^18.0.0"
   }
 }

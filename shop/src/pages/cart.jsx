@@ -396,7 +396,7 @@ const proceedWithCheckout = async (locationData) => {
                   </div>
                   <button 
                     onClick={handleEditAddress} 
-                    className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                    className="text-blue-600 hover:text-blue-800 text-sm flex items-center cursor-pointer"
                   >
                     <FontAwesomeIcon icon={faEdit} className="mr-1" />
                     Edit
@@ -495,13 +495,13 @@ const proceedWithCheckout = async (locationData) => {
                 <button
                   type="button"
                   onClick={() => setShowAddressConfirmation(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center cursor-pointer"
                 >
                   <FontAwesomeIcon icon={faCheck} className="mr-2" />
                   {savedAddressExists ? 'Update & Checkout' : 'Confirm & Checkout'}

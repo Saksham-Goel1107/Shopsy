@@ -10,10 +10,20 @@ import { getToken } from 'firebase/messaging'
 import { messaging } from './firebase'
 import Orders from './pages/orders';
 import OrderDetail from './pages/orderDetail';
+import Register from './pages/register';
+import Otp from './pages/otp';
+import { jwtDecode } from 'jwt-decode';
+import ForgotEmail from "./pages/forgotemail"
+import ResetPassword from "./pages/resetpassword"
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
-
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return 
+    const decoded = jwtDecode(token);
+    return token && decoded?.isVerified;
+  });
+  
   async function requestPermission() {
     const permission = Notification.permission;
 
@@ -43,7 +53,18 @@ function App() {
   useEffect(() => {
     requestPermission();
     const checkAuth = () => {
-      setIsAuthenticated(!!localStorage.getItem('token'));
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const user = jwtDecode(token);
+          setIsAuthenticated(user?.isVerified);
+        } catch (error) {
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
     };
 
     window.addEventListener('auth-change', checkAuth);
@@ -60,6 +81,10 @@ function App() {
       {isAuthenticated && <Header />}
       <Routes>
         <Route path="/" element={isAuthenticated ? <ProductListing /> : <Login />} />
+        <Route path="/otp" element={<Otp />} />
+        <Route path="/register" element={isAuthenticated ? <ProductListing /> : <Register />} />
+        <Route path="/forgot" element={isAuthenticated ? <ProductListing /> : <ForgotEmail />} />
+        <Route path="/resetpassword" element={isAuthenticated ? <ProductListing /> : <ResetPassword />} />
         <Route path="/products" element={<ProductListing />} />
         <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/cart" element={isAuthenticated ? <Cart /> : <Login />} />

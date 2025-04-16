@@ -10,12 +10,16 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
 
 ## 🚀 Features
 
-- **User Authentication** - Secure login system with token-based authentication and reCAPTCHA verification
+- **User Authentication** - Secure login and registration system with token-based authentication and reCAPTCHA verification
+- **Email Verification** - OTP-based email verification for new accounts
+- **Password Recovery** - Secure password reset functionality with email verification
 - **Product Catalog** - Browse products with category filtering and search functionality
 - **Product Details** - View detailed information about each product
 - **Shopping Cart** - Add, remove, and update quantities of products
 - **Payment Processing** - Secure checkout with Stripe payment integration
+- **Order Management** - Track orders and view order history with status updates
 - **Push Notifications** - Order confirmations using Firebase Cloud Messaging
+- **Address Management** - Save and update delivery addresses
 - **Responsive Design** - Optimized for both desktop and mobile devices
 - **Category Filtering** - Filter products by categories
 - **Search Functionality** - Search products by name
@@ -29,31 +33,39 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
   - **React Router** - For navigation and routing
   - **Tailwind CSS** - For styling and responsive design
   - **FontAwesome** - For icons and visual elements
-  - **React Google reCAPTCHA** - For user verification during login
+  - **React Google reCAPTCHA** - For user verification during registration and password reset
   - **Firebase** - For push notifications via Firebase Cloud Messaging
+  - **JWT Decode** - For handling JSON Web Tokens
 
 - **Backend:**
   - **Express** - Node.js web application framework for the backend
+  - **MongoDB** - NoSQL database for storing user and order information
+  - **Mongoose** - MongoDB object modeling for Node.js
   - **Stripe** - For secure payment processing
   - **Cors** - For handling cross-origin requests
   - **Firebase Admin** - For sending server-side notifications
+  - **JWT** - For secure authentication
+  - **Bcrypt** - For password hashing
+  - **Nodemailer** - For sending emails
 
 - **APIs:**
-  - **Fake Store API** - For product data and authentication
   - **Google reCAPTCHA API** - For security verification
   - **Stripe API** - For payment processing
   - **Firebase Cloud Messaging API** - For push notifications
 
 - **Storage:**
+  - **MongoDB** - For persisting user data, orders, and addresses
   - **LocalStorage** - For persisting cart and authentication state
 
 ## 📋 Prerequisites
 
 - Node.js (v14.0.0 or later)
 - npm (v6.0.0 or later)
+- MongoDB database
 - Stripe account for payment processing
 - Google reCAPTCHA keys
 - Firebase project with Cloud Messaging enabled
+- Email service for sending verification emails
 
 ## 🔧 Installation
 
@@ -92,12 +104,17 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
 5. Set up backend environment variables
    Create a .env file in the Backend directory with:
    ```
+   MONGODB_URI=your_mongodb_connection_string
+   JWT_SECRET=your_jwt_secret_key
    STRIPE_SECRET_KEY=your_stripe_secret_key
    SITE_SECRET_KEY=your_recaptcha_secret_key
    PORT=5000
    FIREBASE_PROJECT_ID=your_firebase_project_id
    FIREBASE_CLIENT_EMAIL=your_firebase_client_email
    FIREBASE_PRIVATE_KEY=your_firebase_private_key
+   EMAIL_USER=your_email_address
+   EMAIL_PASS=your_email_password
+   EMAIL_SERVICE=your_email_service
    ```
 
 6. Start the backend server
@@ -115,10 +132,11 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
 
 ## 🔑 Usage
 
-### Login
-Use the following credentials to log in:
-- Username: `mor_2314`
-- Password: `83r5^_`
+### Registration and Login
+- Register with your email, username, and password
+- Verify your account using the OTP sent to your email
+- Log in with your username and password
+- Reset your password if forgotten
 
 ### Product Browsing
 - Browse all products on the home page
@@ -132,6 +150,11 @@ Use the following credentials to log in:
 - Update quantities directly from product pages or cart
 - Remove items from cart
 - Proceed to checkout with Stripe payment
+
+### Order Management
+- View your order history
+- Track your order status (pending, processing, completed, cancelled)
+- Receive notifications on order status changes
 
 ### Notifications
 - Enable browser notifications to receive order confirmations
@@ -152,9 +175,14 @@ project/
 │   │   ├── pages/
 │   │   │   ├── cart.jsx
 │   │   │   ├── login.jsx
+│   │   │   ├── register.jsx
+│   │   │   ├── otp.jsx
+│   │   │   ├── resetpassword.jsx
 │   │   │   ├── productDetails.jsx
 │   │   │   ├── productListing.jsx
-│   │   │   └── success.jsx
+│   │   │   ├── success.jsx
+│   │   │   ├── orders.jsx
+│   │   │   └── orderDetail.jsx
 │   │   ├── App.jsx
 │   │   ├── App.css
 │   │   ├── firebase.js
@@ -166,9 +194,23 @@ project/
 │   └── vercel.json
 ├── Backend/                # Backend
 │   ├── api/
+│   │   ├── forgot-otp.js
+│   │   ├── login.js
 │   │   ├── notification.js
+│   │   ├── orders.js
+│   │   ├── otp.js
+│   │   ├── register.js
+│   │   ├── reset-password.js
 │   │   ├── stripe.js
+│   │   ├── user.js
 │   │   └── verify-recaptcha.js
+│   ├── middlewares/
+│   │   ├── email.config.js
+│   │   ├── email.js
+│   │   └── emailTemplate.js
+│   ├── models/
+│   │   ├── orders.js
+│   │   └── user.js
 │   ├── index.js
 │   └── package.json
 ├── LICENSE
@@ -177,38 +219,59 @@ project/
 
 ## 🌐 API Reference
 
-### Fake Store API
-This project uses the [Fake Store API](https://fakestoreapi.com/docs) for product data and authentication.
-
-- `GET /products` - Get all products
-- `GET /products/categories` - Get all categories
-- `GET /products/category/{categoryName}` - Get products by category
-- `GET /products/{id}` - Get a single product
-- `POST /auth/login` - User authentication
-
 ### Backend API
 Custom backend API endpoints:
 
-- `POST /api/verify-recaptcha` - Verify Google reCAPTCHA tokens
-- `POST /api/stripe/payment` - Create Stripe payment sessions
-- `POST /api/send-notification` - Send Firebase Cloud Messaging notifications
+- **Authentication:**
+  - `POST /api/register` - Register a new user
+  - `POST /api/login` - User authentication
+  - `POST /api/otp/verify` - Verify email with OTP
+  - `POST /api/otp/resend` - Resend OTP for verification
+  - `POST /api/forgotemail` - Send OTP for password reset
+  - `POST /api/resetpassword` - Reset password with OTP
+
+- **User:**
+  - `GET /api/user/address` - Get user's saved address
+  - `POST /api/user/address` - Save user's delivery address
+
+- **Orders:**
+  - `GET /api/orders` - Get user's orders
+  - `GET /api/orders/:id` - Get specific order details
+  - `POST /api/orders` - Create a new order
+
+- **Payments:**
+  - `POST /api/stripe/payment` - Create Stripe payment sessions
+  - `POST /api/stripe/webhook` - Handle Stripe webhook events
+
+- **Notifications:**
+  - `POST /api/send-notification` - Send Firebase Cloud Messaging notifications
+
+- **Security:**
+  - `POST /api/verify-recaptcha` - Verify Google reCAPTCHA tokens
 
 ## 📸 Screenshots
 
-![alt text](image.png)
-![alt text](image-4.png)
-![alt text](image-2.png)
-![alt text](image-1.png)
-![alt text](image-6.png)
+![alt text](image-3.png)
+![alt text](image-5.png)
+![alt text](image-7.png)
+![alt text](image-8.png)
+![alt text](image-9.png)
+![alt text](image-10.png)
+![alt text](image-11.png)
+![alt text](image-12.png)
+![alt text](image-13.png)
+![alt text](image-14.png)
+![alt text](image-15.png)
+![alt text](image-16.png)
 
 ## 🚀 Future Enhancements
 
-- User registration functionality
 - Product reviews and ratings
-- Order history tracking
 - Wishlist feature
 - Admin dashboard for product management
 - Enhanced notification preferences
+- Social media login options
+- Advanced product filtering and sorting
 
 ## 👥 Contributors
 
@@ -220,13 +283,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- [Fake Store API](https://fakestoreapi.com/) for providing the product data
 - [Tailwind CSS](https://tailwindcss.com/) for the styling framework
 - [FontAwesome](https://fontawesome.com/) for the icons
 - [React](https://reactjs.org/) and [React Router](https://reactrouter.com/) for the frontend framework
 - [Stripe](https://stripe.com/) for the payment processing solution
 - [Google reCAPTCHA](https://www.google.com/recaptcha/) for security verification
 - [Firebase](https://firebase.google.com/) for push notification functionality
+- [MongoDB](https://www.mongodb.com/) for database solutions
 
 ---
 

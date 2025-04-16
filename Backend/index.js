@@ -7,6 +7,11 @@ import stripeRouter from "./api/stripe.js";
 import notification from "./api/notification.js";
 import userRouter from "./api/user.js";
 import ordersRouter from "./api/orders.js";
+import registerRouter from "./api/register.js"
+import loginRouter from "./api/login.js"
+import otpRouter from "./api/otp.js"
+import forgotemailRouter from "./api/forgot-otp.js"
+import resetPasswordRouter from "./api/reset-password.js"
 
 dotenv.config();
 
@@ -53,6 +58,11 @@ app.use("/api/stripe", stripeRouter);
 app.use("/api/user", userRouter);
 app.use("/api/send-notification", notification);
 app.use("/api/orders", ordersRouter);
+app.use("/api/register", registerRouter);
+app.use("/api/login", loginRouter);
+app.use("/api/otp", otpRouter);
+app.use("/api/forgotemail", forgotemailRouter);
+app.use("/api/resetpassword", resetPasswordRouter);
 
 app.get("/", (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
@@ -64,7 +74,12 @@ app.get("/", (req, res) => {
       '/api/stripe/payment',
       '/api/verify-recaptcha',
       '/api/send-notification',
-      '/api/orders'
+      '/api/register',
+      '/api/orders',
+      '/api/login',
+      '/api/otp',
+      '/api/forgotemail',
+      "/api/resetpassword",
     ]
   });
 });
