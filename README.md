@@ -2,7 +2,7 @@
 
 ## 🚀 Live Demo
 
-[![Live Site](https://img.shields.io/badge/Live%20Demo-Online-green)](https://shopify-tau-seven.vercel.app)
+## Shutdown Due To High Cost of Running
 
 ## Overview
 
