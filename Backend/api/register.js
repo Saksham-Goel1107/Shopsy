@@ -4,6 +4,7 @@ import user from "../models/user.js"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { sendVerificationEmail } from "../middlewares/email.js";
+import { isDisposableEmail } from '../utils/emailValidator.js';
 dotenv.config();
 
 const router = express.Router();
@@ -29,6 +30,12 @@ router.post("/", async (req, res) => {
                 message: "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character"
             });
         }
+        if (isDisposableEmail(email)) {
+          return res.status(400).json({
+              success: false,
+              message: "Disposable email addresses are not allowed."
+          });
+      }
         const otp = Math.floor(10000 + Math.random() * 90000);
         const verifiedTill = new Date(Date.now() + 24*60*60*1000);
         const hashedPassword = await bcrypt.hash(password, 10);

@@ -1,31 +1,83 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faExclamationTriangle, 
+  faCheck, 
+  faTimes,
+} from '@fortawesome/free-solid-svg-icons';
 
 function OTP() {
   const [otp, setOtp] = useState(['', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [timer, setTimer] = useState(60);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) navigate("/register") 
+    if (!token) navigate("/register")
     const decoded = jwtDecode(token);
 
-    if( token && decoded?.isVerified===true){
-        navigate('/products')
-        
+    if (token && decoded?.isVerified === true) {
+      navigate('/products')
+
     }
-    
+
     const countdown = setInterval(() => {
       setTimer((prevTimer) => (prevTimer > 0 ? prevTimer - 1 : 0));
     }, 1000);
 
     return () => clearInterval(countdown);
   }, []);
+
+  const confirmBack = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const decoded = jwtDecode(token);
+      const email = decoded?.email;
+  
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/otp/cancel-registration`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+  
+      const data = await response.json();
+      
+      if (data.success) {
+        localStorage.removeItem('token');
+        window.dispatchEvent(new Event('auth-change'));
+        navigate('/register');
+      } else {
+        setError(data.message || 'Failed to cancel registration');
+      }
+    } catch (error) {
+      console.error('Cancel registration error:', error);
+      setError('Failed to cancel registration. Please try again.');
+    } finally {
+      document.body.style.overflow = '';
+      setShowLogoutModal(false);
+    }
+  };
+  
+  const cancelBack = () => {
+    document.body.style.overflow = '';
+    setShowLogoutModal(false);
+  };
+  
+  const handleBack = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/register');
+      return;
+    }
+    document.body.style.overflow = 'hidden';
+    setShowLogoutModal(true);
+  };
 
   const handleChange = (element, index) => {
     if (isNaN(element.value)) return false;
@@ -57,12 +109,12 @@ function OTP() {
     e.preventDefault();
     setError('');
     const otpValue = otp.join('');
-    
+
     if (otpValue.length !== 5) {
       setError('Please enter all digits');
       return;
     }
-    
+
     const token = localStorage.getItem('token');
     if (!token) {
       setError('Authentication token not found');
@@ -78,26 +130,26 @@ function OTP() {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/otp/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           otp: otpValue,
           email
         }),
       });
 
       const data = await response.json();
-      
+
       if (!data.success) {
         setError(data.message);
         return;
       }
       if (data.token) {
         localStorage.setItem('token', data.token);
-      setTimeout(() => {
-        
+        setTimeout(() => {
+
           window.dispatchEvent(new Event('auth-change'));
           navigate('/products');
-      }, 100);
-    }
+        }, 100);
+      }
     } catch (error) {
       console.error('OTP verification error:', error);
       setError('Verification failed. Please try again.');
@@ -110,12 +162,12 @@ function OTP() {
     if (timer !== 0) return;
     const token = localStorage.getItem('token');
     if (!token) {
-        setError('Authentication token not found');
-        navigate('/register');
-        return;
-      }
+      setError('Authentication token not found');
+      navigate('/register');
+      return;
+    }
     const decoded = jwtDecode(token);
-    const email = decoded?.email;    
+    const email = decoded?.email;
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/otp/resend`, {
         method: 'POST',
@@ -123,7 +175,7 @@ function OTP() {
         body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();      
+      const data = await response.json();
       if (data.success) {
         setTimer(60);
         setError('');
@@ -143,7 +195,7 @@ function OTP() {
           <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-6">
             Enter Verification Code
           </h2>
-          
+
           <p className="text-center text-gray-600 mb-6">
             We have sent a verification code to your email
           </p>
@@ -188,6 +240,51 @@ function OTP() {
               className="text-blue-600 hover:text-blue-800 text-sm font-medium disabled:text-gray-400 cursor-pointer"
             >
               {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
+            </button>
+          </div>
+          {showLogoutModal && (
+                  <div 
+                    className="fixed inset-0 bg-opacity-10 z-40 flex items-center justify-center backdrop-blur-sm"
+                    onClick={cancelBack}
+                  >
+                    <div 
+                      className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-50 transform transition-all"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="text-center">
+                        <div className="bg-yellow-100 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <FontAwesomeIcon icon={faExclamationTriangle} className="text-yellow-500 text-3xl sm:text-4xl" />
+                        </div>
+                        
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">Cancel Registration</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to cancel your registration? This action cannot be undone.</p>
+                        
+                        <div className="flex justify-center space-x-3 sm:space-x-4">
+                          <button
+                            onClick={cancelBack}
+                            className="px-4 sm:px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-100 focus:outline-none transition-colors duration-300 flex items-center cursor-pointer"
+                          >
+                            <FontAwesomeIcon icon={faTimes} className="mr-2" />
+                            Keep Registration
+                          </button>
+                          <button
+                            onClick={confirmBack}
+                            className="px-4 sm:px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none transition-colors duration-300 flex items-center cursor-pointer"
+                          >
+                            <FontAwesomeIcon icon={faCheck} className="mr-2" />
+                            Cancel Registration
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+          <div className="mt-4 text-center">
+            <button
+              onClick={handleBack}
+              className="hover:text-blue-800 text-sm font-medium text-blue-500 cursor-pointer"
+            >
+              ← Back to Register
             </button>
           </div>
         </div>
