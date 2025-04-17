@@ -348,6 +348,8 @@ Custom backend API endpoints:
 ## 📸 Screenshots
 
 ![alt text](Projectimages/image-1.png)
+![alt text](Projectimages/Phoneotpimage.jpg)
+![alt text](Projectimages/Emailotpimage.jpg)
 ![alt text](Projectimages/image-2.png)
 ![alt text](Projectimages/image-5.png)
 ![alt text](Projectimages/image-7.png)

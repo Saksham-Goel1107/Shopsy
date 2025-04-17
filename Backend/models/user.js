@@ -5,17 +5,22 @@ const userSchema = new mongoose.Schema({
         type:String,
         unique:true,
         required:true,
+        trim:true,
     },
     email:{
         type:String,
         unique:true,
         required:true,
+        lowercase:true,
+        trim:true,
     },
     PhoneNumber: {
         type: String,
         required: true,
         minlength: 10,
         maxlength: 15,
+        unique: true,
+        trim: true,
         match: [/^\+\d{1,4}\d{10,14}$/, "Phone number must include country code (e.g., +91XXXXXXXXXX)"]
     },      
     password:{
@@ -34,6 +39,12 @@ const userSchema = new mongoose.Schema({
     },
     verifiedTill:{
         type:Date,
+    },
+    ValidTill:{
+        type:Date,
+        index:{expireAfterSeconds:0,
+            partialFilterExpression:{isVerified:false}
+        }
     }
 })
 

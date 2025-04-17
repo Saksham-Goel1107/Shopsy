@@ -30,7 +30,8 @@ router.post("/", async (req, res) => {
 
     const token = jwt.sign(
         { id: existingUser._id,email: existingUser.email,
-            isVerified: existingUser.isVerified}, 
+            isVerified: existingUser.isVerified,
+            phoneNumber: existingUser.PhoneNumber,}, 
         process.env.JWT_SECRET,
         { expiresIn: "7d" }  
     );

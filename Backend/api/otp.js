@@ -47,6 +47,7 @@ router.post('/verify', async (req, res) => {
   user.Email_otp = undefined;
   user.Phone_otp = undefined;
   user.verifiedTill = undefined;
+  user.ValidTill = undefined;
   await user.save();
 
   await sendWelcomeEmail(user.email, user.username);

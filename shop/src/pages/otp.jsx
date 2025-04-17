@@ -30,7 +30,6 @@ function OTP() {
 
     if (token && decoded?.isVerified === true) {
       navigate('/products')
-
     }
     setUserEmail(decoded?.email);
   setUserPhone(decoded?.phoneNumber);
@@ -234,6 +233,8 @@ function OTP() {
                     name="emailOtp"
                     type="text"
                     maxLength="1"
+                    inputMode='numeric'
+                    pattern="[0-9]*"
                     value={digit}
                     onChange={(e) => handleChange(e.target, 'email', index)}
                     onKeyDown={(e) => handleKeyDown(e, 'email', index)}
@@ -257,6 +258,8 @@ function OTP() {
                     name="phoneOtp"
                     type="text"
                     maxLength="1"
+                    inputMode='numeric'
+                    pattern="[0-9]*"
                     value={digit}
                     onChange={(e) => handleChange(e.target, 'phone', index)}
                     onKeyDown={(e) => handleKeyDown(e, 'phone', index)}

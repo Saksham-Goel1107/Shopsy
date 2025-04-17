@@ -20,7 +20,16 @@ router.post("/", async (req, res) => {
               {PhoneNumber:phoneNumber},
             ]
           });
-          if (existingUser) {
+          if (existingUser && existingUser.isVerified===false) {
+            await user.findOneAndDelete({
+              $or: [
+                { username },
+                { email },
+                {PhoneNumber:phoneNumber},
+              ]
+            })
+          }
+          else if (existingUser && existingUser.isVerified===true) {
             return res.status(400).json({
               success: false,
               message: "Username or email or Phone Number already exists"
@@ -41,6 +50,7 @@ router.post("/", async (req, res) => {
         const otp = Math.floor(10000 + Math.random() * 90000);
         const otp2 = Math.floor(10000 + Math.random() * 90000);
         const verifiedTill = new Date(Date.now() + 24*60*60*1000);
+        const validTill = new Date(Date.now() + 7*24*60*60*1000);
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = new user({
@@ -51,6 +61,7 @@ router.post("/", async (req, res) => {
           Phone_otp:otp2,
           verifiedTill,
           PhoneNumber:phoneNumber,
+          ValidTill:validTill
         });
         await newUser.save();
 

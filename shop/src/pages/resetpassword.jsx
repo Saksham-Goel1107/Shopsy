@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, {useEffect ,useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
@@ -20,6 +20,18 @@ function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [captchaValue, setCaptchaValue] = useState(null);
   const recaptchaRef = useRef(null);
+
+  useEffect(() => {
+    if (!email) {
+      navigate('/forgot', { 
+        replace: true,
+        state: { message: 'Please enter your email to reset password' } 
+      });
+    }
+  }, []);
+  if (!email) {
+    return null; 
+  }
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
