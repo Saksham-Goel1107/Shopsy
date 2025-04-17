@@ -11,6 +11,13 @@ const userSchema = new mongoose.Schema({
         unique:true,
         required:true,
     },
+    PhoneNumber: {
+        type: String,
+        required: true,
+        minlength: 10,
+        maxlength: 15,
+        match: [/^\+\d{1,4}\d{10,14}$/, "Phone number must include country code (e.g., +91XXXXXXXXXX)"]
+    },      
     password:{
         type:String,
         required:true,
@@ -19,7 +26,10 @@ const userSchema = new mongoose.Schema({
         type:Boolean,
         default:false,
     },
-    otp:{
+    Email_otp:{
+        type:Number,
+    },
+    Phone_otp:{
         type:Number,
     },
     verifiedTill:{

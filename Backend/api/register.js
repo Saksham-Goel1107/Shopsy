@@ -5,23 +5,25 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { sendVerificationEmail } from "../middlewares/email.js";
 import { isDisposableEmail } from '../utils/emailValidator.js';
+import { sendSMSOTP } from '../middlewares/SmsOtp.js';
 dotenv.config();
 
 const router = express.Router();
 
 router.post("/", async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password,phoneNumber } = req.body;
         const existingUser = await user.findOne({
             $or: [
-              { username: username },
-              { email: email }
+              { username },
+              { email },
+              {PhoneNumber:phoneNumber},
             ]
           });
           if (existingUser) {
             return res.status(400).json({
               success: false,
-              message: "Username or email already exists"
+              message: "Username or email or Phone Number already exists"
             });
           }
           if (!(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/).test(password)) {
@@ -37,6 +39,7 @@ router.post("/", async (req, res) => {
           });
       }
         const otp = Math.floor(10000 + Math.random() * 90000);
+        const otp2 = Math.floor(10000 + Math.random() * 90000);
         const verifiedTill = new Date(Date.now() + 24*60*60*1000);
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -44,20 +47,24 @@ router.post("/", async (req, res) => {
           username:username.trim(),
           email,
           password: hashedPassword,
-          otp,
+          Email_otp:otp,
+          Phone_otp:otp2,
           verifiedTill,
+          PhoneNumber:phoneNumber,
         });
         await newUser.save();
 
         try {
             await sendVerificationEmail(email, otp);
+            await sendSMSOTP(phoneNumber, otp2);
         } catch (emailError) {
-            console.error('Failed to send verification email:', emailError);
+            console.error('Failed to send verification:', error);
         }
 
         const token = jwt.sign(
             { id: newUser._id ,email: newUser.email,
-              isVerified: newUser.isVerified},
+              isVerified: newUser.isVerified,
+              phoneNumber: newUser.PhoneNumber,},
             process.env.JWT_SECRET,
             { expiresIn: "7d" } 
         );
@@ -70,7 +77,8 @@ router.post("/", async (req, res) => {
               id: newUser._id,
               username: newUser.username,
               isVerified: false,
-              email: newUser.email
+              email: newUser.email,
+              phoneNumber:newUser.phoneNumber,
             }
         });
     } catch (error) {

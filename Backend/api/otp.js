@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import User from "../models/user.js";
+import { sendSMSOTP } from "../middlewares/SmsOtp.js";
 import jwt from "jsonwebtoken"
 import {
   sendVerificationEmail,
@@ -11,7 +12,7 @@ const router = express.Router();
 dotenv.config();
 
 router.post('/verify', async (req, res) => {
-  const { otp, email } = req.body;
+  const { emailOtp, email,phoneOtp } = req.body;
   const user = await User.findOne({ email });
 
   if (!user) {
@@ -28,15 +29,23 @@ router.post('/verify', async (req, res) => {
     });
   }
 
-  if (user.otp !== parseInt(otp)) {
+  if (user.Email_otp !== parseInt(emailOtp)) {
     return res.status(400).json({
       success: false,
-      message: "Invalid OTP"
+      message: "Invalid Email OTP"
+    });
+  }
+
+  if (user.Phone_otp !== parseInt(phoneOtp)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid Phone OTP"
     });
   }
 
   user.isVerified = true;
-  user.otp = undefined;
+  user.Email_otp = undefined;
+  user.Phone_otp = undefined;
   user.verifiedTill = undefined;
   await user.save();
 
@@ -79,20 +88,23 @@ router.post('/resend', async (req, res) => {
     }
 
     const newotp = Math.floor(10000 + Math.random() * 90000);
+    const newotp2 = Math.floor(10000 + Math.random() * 90000);
     const verifiedTill = new Date(Date.now() + 24*60 * 60 * 1000);
 
-    user.otp = newotp;
+    user.Email_otp = newotp;
+    user.Phone_otp = newotp2;
     user.verifiedTill = verifiedTill;
 
     await user.save();
     
     try {
       await sendVerificationEmail(user.email, newotp);
-    } catch (emailError) {
-      console.error('Email sending failed:', emailError);
+      await sendSMSOTP(user.PhoneNumber, newotp2);
+    } catch (error) {
+      console.error('OTP sending failed:', error);
       return res.status(500).json({
         success: false,
-        message: "Failed to send OTP email"
+        message: "Failed to send OTP "
       });
     }
 

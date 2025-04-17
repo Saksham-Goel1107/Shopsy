@@ -2,14 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faExclamationTriangle, 
-  faCheck, 
+import {
+  faExclamationTriangle,
+  faCheck,
   faTimes,
 } from '@fortawesome/free-solid-svg-icons';
 
 function OTP() {
-  const [otp, setOtp] = useState(['', '', '', '', '']);
+  const [otpValues, setOtpValues] = useState({
+    email: ['', '', '', '', ''],
+    phone: ['', '', '', '', '']
+  });
+  const [userEmail, setUserEmail] = useState('');
+  const [userPhone, setUserPhone] = useState('');
+  const [isResending, setIsResending] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [timer, setTimer] = useState(60);
@@ -26,7 +32,8 @@ function OTP() {
       navigate('/products')
 
     }
-
+    setUserEmail(decoded?.email);
+  setUserPhone(decoded?.phoneNumber);
     const countdown = setInterval(() => {
       setTimer((prevTimer) => (prevTimer > 0 ? prevTimer - 1 : 0));
     }, 1000);
@@ -39,15 +46,15 @@ function OTP() {
       const token = localStorage.getItem('token');
       const decoded = jwtDecode(token);
       const email = decoded?.email;
-  
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/otp/cancel-registration`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-  
+
       const data = await response.json();
-      
+
       if (data.success) {
         localStorage.removeItem('token');
         window.dispatchEvent(new Event('auth-change'));
@@ -63,12 +70,12 @@ function OTP() {
       setShowLogoutModal(false);
     }
   };
-  
+
   const cancelBack = () => {
     document.body.style.overflow = '';
     setShowLogoutModal(false);
   };
-  
+
   const handleBack = () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -79,39 +86,42 @@ function OTP() {
     setShowLogoutModal(true);
   };
 
-  const handleChange = (element, index) => {
+  const handleChange = (element, type, index) => {
     if (isNaN(element.value)) return false;
 
-    setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
+    setOtpValues(prev => ({
+      ...prev,
+      [type]: prev[type].map((d, idx) => (idx === index ? element.value : d))
+    }));
 
     if (element.value && element.nextSibling) {
       element.nextSibling.focus();
     }
   };
 
-  const handleKeyDown = (e, index) => {
+  const handleKeyDown = (e, type, index) => {
     if (e.key === 'Backspace') {
-      if (!otp[index] && index > 0) {
+      if (!otpValues[type][index] && index > 0) {
         const prevInput = e.target.previousSibling;
         if (prevInput) {
           prevInput.focus();
         }
       }
-      setOtp((prev) => {
-        const newOtp = [...prev];
-        newOtp[index] = '';
-        return newOtp;
-      });
+      setOtpValues(prev => ({
+        ...prev,
+        [type]: prev[type].map((d, idx) => (idx === index ? '' : d))
+      }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    const otpValue = otp.join('');
+    const emailOtp = otpValues.email.join('');
+    const phoneOtp = otpValues.phone.join('');
 
-    if (otpValue.length !== 5) {
-      setError('Please enter all digits');
+    if (emailOtp.length !== 5 || phoneOtp.length !== 5) {
+      setError('Please enter all digits for both email and phone OTP');
       return;
     }
 
@@ -131,7 +141,8 @@ function OTP() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          otp: otpValue,
+          emailOtp,
+          phoneOtp,
           email
         }),
       });
@@ -145,7 +156,6 @@ function OTP() {
       if (data.token) {
         localStorage.setItem('token', data.token);
         setTimeout(() => {
-
           window.dispatchEvent(new Event('auth-change'));
           navigate('/products');
         }, 100);
@@ -169,6 +179,7 @@ function OTP() {
     const decoded = jwtDecode(token);
     const email = decoded?.email;
     try {
+      setIsResending(true);
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/otp/resend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -185,6 +196,8 @@ function OTP() {
     } catch (error) {
       console.error('Resend OTP error:', error);
       setError('Failed to resend OTP. Please try again.');
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -197,8 +210,10 @@ function OTP() {
           </h2>
 
           <p className="text-center text-gray-600 mb-6">
-            We have sent a verification code to your email
-          </p>
+  We have sent verification codes to:<br />
+  <span className="font-medium">Email: {userEmail}</span><br />
+  <span className="font-medium">Phone: {userPhone}</span>
+</p>
 
           {error && (
             <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -207,19 +222,50 @@ function OTP() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex justify-center gap-2">
-              {otp.map((digit, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  maxLength="1"
-                  value={digit}
-                  onChange={(e) => handleChange(e.target, index)}
-                  onKeyDown={(e) => handleKeyDown(e, index)}
-                  onFocus={(e) => e.target.select()}
-                  className="w-12 h-12 text-center text-xl border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-              ))}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 text-center">
+                Email OTP
+              </label>
+              <div className="flex justify-center gap-2">
+                {otpValues.email.map((digit, index) => (
+                  <input
+                    key={`email-${index}`}
+                    id={`emailOtp-${index}`}
+                    name="emailOtp"
+                    type="text"
+                    maxLength="1"
+                    value={digit}
+                    onChange={(e) => handleChange(e.target, 'email', index)}
+                    onKeyDown={(e) => handleKeyDown(e, 'email', index)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-12 h-12 text-center text-xl border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    aria-label={`Email OTP digit ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 text-center">
+                Phone OTP
+              </label>
+              <div className="flex justify-center gap-2">
+                {otpValues.phone.map((digit, index) => (
+                  <input
+                    key={`phone-${index}`}
+                    id={`phoneOtp-${index}`}
+                    name="phoneOtp"
+                    type="text"
+                    maxLength="1"
+                    value={digit}
+                    onChange={(e) => handleChange(e.target, 'phone', index)}
+                    onKeyDown={(e) => handleKeyDown(e, 'phone', index)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-12 h-12 text-center text-xl border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    aria-label={`Phone OTP digit ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
 
             <div>
@@ -236,49 +282,53 @@ function OTP() {
           <div className="mt-6 text-center">
             <button
               onClick={handleResendOTP}
-              disabled={timer > 0}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium disabled:text-gray-400 cursor-pointer"
+              disabled={timer > 0 || isResending}
+              className={`text-sm font-medium cursor-pointer ${
+                timer > 0 || isResending
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-blue-600 hover:text-blue-800'
+              }`}
             >
-              {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
+              {isResending ? 'Resending...' : timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
             </button>
           </div>
           {showLogoutModal && (
-                  <div 
-                    className="fixed inset-0 bg-opacity-10 z-40 flex items-center justify-center backdrop-blur-sm"
-                    onClick={cancelBack}
-                  >
-                    <div 
-                      className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-50 transform transition-all"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="text-center">
-                        <div className="bg-yellow-100 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <FontAwesomeIcon icon={faExclamationTriangle} className="text-yellow-500 text-3xl sm:text-4xl" />
-                        </div>
-                        
-                        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">Cancel Registration</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to cancel your registration? This action cannot be undone.</p>
-                        
-                        <div className="flex justify-center space-x-3 sm:space-x-4">
-                          <button
-                            onClick={cancelBack}
-                            className="px-4 sm:px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-100 focus:outline-none transition-colors duration-300 flex items-center cursor-pointer"
-                          >
-                            <FontAwesomeIcon icon={faTimes} className="mr-2" />
-                            Keep Registration
-                          </button>
-                          <button
-                            onClick={confirmBack}
-                            className="px-4 sm:px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none transition-colors duration-300 flex items-center cursor-pointer"
-                          >
-                            <FontAwesomeIcon icon={faCheck} className="mr-2" />
-                            Cancel Registration
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+            <div
+              className="fixed inset-0 bg-opacity-10 z-40 flex items-center justify-center backdrop-blur-sm"
+              onClick={cancelBack}
+            >
+              <div
+                className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-50 transform transition-all"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="text-center">
+                  <div className="bg-yellow-100 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="text-yellow-500 text-3xl sm:text-4xl" />
                   </div>
-                )}
+
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">Cancel Registration</h3>
+                  <p className="text-gray-600 mb-6">Are you sure you want to cancel your registration? This action cannot be undone.</p>
+
+                  <div className="flex justify-center space-x-3 sm:space-x-4">
+                    <button
+                      onClick={cancelBack}
+                      className="px-4 sm:px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-100 focus:outline-none transition-colors duration-300 flex items-center cursor-pointer"
+                    >
+                      <FontAwesomeIcon icon={faTimes} className="mr-2" />
+                      Keep Registration
+                    </button>
+                    <button
+                      onClick={confirmBack}
+                      className="px-4 sm:px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none transition-colors duration-300 flex items-center cursor-pointer"
+                    >
+                      <FontAwesomeIcon icon={faCheck} className="mr-2" />
+                      Cancel Registration
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="mt-4 text-center">
             <button
               onClick={handleBack}
