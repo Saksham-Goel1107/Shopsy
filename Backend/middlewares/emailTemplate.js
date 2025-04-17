@@ -58,6 +58,34 @@ const Verification_Email_Template = `
           p {
               margin: 0 0 15px;
           }
+              .contact-buttons {
+              display: flex;
+              justify-content: center;
+              flex-wrap: wrap;
+              gap: 15px;
+              margin-top: 25px;
+              padding-top: 15px;
+              border-top: 1px solid #eee;
+          }
+          .contact-btn {
+              display: flex;
+              align-items: center;
+              padding: 8px 15px;
+              background-color: #f8f9fa;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              color: #555;
+              text-decoration: none;
+              font-size: 14px;
+              transition: all 0.3s ease;
+          }
+          .contact-btn:hover {
+              background-color: #e9ecef;
+              border-color: #bbb;
+          }
+          .contact-btn svg {
+              margin-right: 8px;
+          }
       </style>
   </head>
   <body>
@@ -68,6 +96,17 @@ const Verification_Email_Template = `
               <p>Thank you for signing up! Please confirm your email address by entering the code below:</p>
               <span class="verification-code">{verificationCode}</span>
               <p>If you did not create an account, no further action is required. If you have any questions, feel free to contact our support team.</p>
+              <div class="contact-buttons">
+                <a href="mailto:sakshamgoel1107@gmail.com" class="contact-btn">
+                  <span>Email Us</span>
+                </a>
+                <a href="https://github.com/Saksham-Goel1107" class="contact-btn">
+                  <span>GitHub</span>
+                </a>
+                <a href="tel:+918882534712" class="contact-btn">
+                  <span>Call Us</span>
+                </a>
+              </div>
           </div>
           <div class="footer">
               <p>&copy; ${new Date().getFullYear()} Saksham-Goel1107. All rights reserved.</p>
@@ -138,6 +177,34 @@ const Reseting_Verification_Email_Template = `
           p {
               margin: 0 0 15px;
           }
+              .contact-buttons {
+              display: flex;
+              justify-content: center;
+              flex-wrap: wrap;
+              gap: 15px;
+              margin-top: 25px;
+              padding-top: 15px;
+              border-top: 1px solid #eee;
+          }
+          .contact-btn {
+              display: flex;
+              align-items: center;
+              padding: 8px 15px;
+              background-color: #f8f9fa;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              color: #555;
+              text-decoration: none;
+              font-size: 14px;
+              transition: all 0.3s ease;
+          }
+          .contact-btn:hover {
+              background-color: #e9ecef;
+              border-color: #bbb;
+          }
+          .contact-btn svg {
+              margin-right: 8px;
+          }
       </style>
   </head>
   <body>
@@ -148,6 +215,17 @@ const Reseting_Verification_Email_Template = `
               <p>An Request has been made to reset the Password! Please confirm the request by entering the code below:</p>
               <span class="verification-code">{verificationCode}</span>
               <p>If you didn't make an request for reseting the password, no further action is required. If you have any questions, feel free to contact our support team.</p>
+               <div class="contact-buttons">
+                <a href="mailto:sakshamgoel1107@gmail.com" class="contact-btn">
+                  <span>Email Us</span>
+                </a>
+                <a href="https://github.com/Saksham-Goel1107" class="contact-btn">
+                  <span>GitHub</span>
+                </a>
+                <a href="tel:+918882534712" class="contact-btn">
+                  <span>Call Us</span>
+                </a>
+              </div>
           </div>
           <div class="footer">
               <p>&copy; ${new Date().getFullYear()} Saksham-Goel1107. All rights reserved.</p>
@@ -224,6 +302,34 @@ const Welcome_Email_Template = `
           p {
               margin: 0 0 15px;
           }
+              .contact-buttons {
+              display: flex;
+              justify-content: center;
+              flex-wrap: wrap;
+              gap: 15px;
+              margin-top: 25px;
+              padding-top: 15px;
+              border-top: 1px solid #eee;
+          }
+          .contact-btn {
+              display: flex;
+              align-items: center;
+              padding: 8px 15px;
+              background-color: #f8f9fa;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              color: #555;
+              text-decoration: none;
+              font-size: 14px;
+              transition: all 0.3s ease;
+          }
+          .contact-btn:hover {
+              background-color: #e9ecef;
+              border-color: #bbb;
+          }
+          .contact-btn svg {
+              margin-right: 8px;
+          }
       </style>
   </head>
   <body>
@@ -240,6 +346,17 @@ const Welcome_Email_Template = `
               </ul>
               <a href="https://shopify-tau-seven.vercel.app/" class="button">Get Started</a>
               <p>If you need any help, don’t hesitate to contact us. We’re here to support you every step of the way.</p>
+               <div class="contact-buttons">
+                <a href="mailto:sakshamgoel1107@gmail.com" class="contact-btn">
+                  <span>Email Us</span>
+                </a>
+                <a href="https://github.com/Saksham-Goel1107" class="contact-btn">
+                  <span>GitHub</span>
+                </a>
+                <a href="tel:+918882534712" class="contact-btn">
+                  <span>Call Us</span>
+                </a>
+              </div>
           </div>
           <div class="footer">
               <p>&copy; ${new Date().getFullYear()} Saksham-Goel1107. All rights reserved.</p>
@@ -316,6 +433,34 @@ const Email_password_change_Template = `
           p {
               margin: 0 0 15px;
           }
+              .contact-buttons {
+              display: flex;
+              justify-content: center;
+              flex-wrap: wrap;
+              gap: 15px;
+              margin-top: 25px;
+              padding-top: 15px;
+              border-top: 1px solid #eee;
+          }
+          .contact-btn {
+              display: flex;
+              align-items: center;
+              padding: 8px 15px;
+              background-color: #f8f9fa;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              color: #555;
+              text-decoration: none;
+              font-size: 14px;
+              transition: all 0.3s ease;
+          }
+          .contact-btn:hover {
+              background-color: #e9ecef;
+              border-color: #bbb;
+          }
+          .contact-btn svg {
+              margin-right: 8px;
+          }
       </style>
   </head>
   <body>
@@ -328,6 +473,17 @@ const Email_password_change_Template = `
               <p><strong>If you did not change your password</strong>, please secure your account immediately by resetting your password and contacting support.</p>
               <a href="https://shopify-tau-seven.vercel.app/products" class="button">Reset Password</a>
               <p>If you need assistance, our support team is here to help you.</p>
+               <div class="contact-buttons">
+                <a href="mailto:sakshamgoel1107@gmail.com" class="contact-btn">
+                  <span>Email Us</span>
+                </a>
+                <a href="https://github.com/Saksham-Goel1107" class="contact-btn">
+                  <span>GitHub</span>
+                </a>
+                <a href="tel:+918882534712" class="contact-btn">
+                  <span>Call Us</span>
+                </a>
+              </div>
           </div>
           <div class="footer">
               <p>&copy; ${new Date().getFullYear()} Saksham-Goel1107. All rights reserved.</p>

@@ -8,18 +8,71 @@
 
 Shop is a modern, responsive e-commerce website built with React. The application provides a seamless shopping experience with features like user authentication, product browsing, cart management, secure checkout functionality, and push notifications.
 
+## 🔒 Security Features
+
+### User Authentication & Verification
+- **Two-Factor Authentication (2FA)**
+  - Email OTP verification (5-digit code)
+  - SMS OTP verification (5-digit code)
+  - 24-hour OTP validity period
+  - OTP resend functionality with cooldown timer
+
+### Password Security
+- **Strong Password Requirements**
+  - Minimum 8 characters
+  - Must include uppercase and lowercase letters
+  - Must include numbers
+  - Must include special characters
+- **Password Protection**
+  - Bcrypt hashing for passwords
+  - Show/hide password toggle in forms
+  - Password strength validation
+
+### Email Security
+- **Disposable Email Prevention**
+  - Blocks registration from known disposable email domains
+  - Regular updates to disposable email domain database
+  - Custom validation patterns
+- **Email Templates**
+  - Branded verification emails
+  - Welcome emails after verification
+  - Password reset confirmation emails
+  - Password change notification emails
+
+### Additional Security Measures
+- **reCAPTCHA Integration**
+  - Required for registration
+  - Required for login attempts
+  - Required for password reset
+- **JWT Authentication**
+  - Token-based session management
+  - 7-day token expiration
+  - Secure token storage
+
+### Phone Number Verification
+- **SMS Integration**
+  - International phone number support
+  - Country code selection
+  - Phone number format validation
+  - Real-time SMS delivery
+
 ## 🚀 Features
 
 - **User Authentication** - Secure login and registration system with token-based authentication and reCAPTCHA verification
+- **Two-Factor Authentication** - OTP verification via both email and SMS
+- **Disposable Email Prevention** - Block registration with temporary/disposable email addresses
 - **Email Verification** - OTP-based email verification for new accounts
+- **SMS Verification** - Phone number verification using SMS OTP
+- **Password Security** - Strong password requirements with special character validation
 - **Password Recovery** - Secure password reset functionality with email verification
 - **Product Catalog** - Browse products with category filtering and search functionality
 - **Product Details** - View detailed information about each product
 - **Shopping Cart** - Add, remove, and update quantities of products
 - **Payment Processing** - Secure checkout with Stripe payment integration
 - **Order Management** - Track orders and view order history with status updates
-- **Push Notifications** - Order confirmations using Firebase Cloud Messaging
-- **Address Management** - Save and update delivery addresses
+- **Push Notifications** - Firebase Cloud Messaging for order status updates
+- **Address Management** - Save and update delivery addresses with geocoding support
+- **Location Services** - Automatic address detection using browser geolocation
 - **Responsive Design** - Optimized for both desktop and mobile devices
 - **Category Filtering** - Filter products by categories
 - **Search Functionality** - Search products by name
@@ -59,13 +112,14 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
 
 ## 📋 Prerequisites
 
-- Node.js (v14.0.0 or later)
-- npm (v6.0.0 or later)
+- Node.js (v18.0.0 or later)
+- npm (v9.0.0 or later)
 - MongoDB database
 - Stripe account for payment processing
 - Google reCAPTCHA keys
 - Firebase project with Cloud Messaging enabled
 - Email service for sending verification emails
+- SMS service provider account for phone verification
 
 ## 🔧 Installation
 
@@ -115,6 +169,9 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
    EMAIL_USER=your_email_address
    EMAIL_PASS=your_email_password
    EMAIL_SERVICE=your_email_service
+   TWILIO_ACCOUNT_SID=your_twilio_account_sid
+   TWILIO_AUTH_TOKEN=your_twilio_auth_token
+   TWILIO_PHONE_NUMBER=your_twilio_phone_number
    ```
 
 6. Start the backend server
@@ -174,6 +231,7 @@ project/
 │   │   │   └── header.jsx
 │   │   ├── pages/
 │   │   │   ├── cart.jsx
+│   │   │   ├── forgotemail.jsx
 │   │   │   ├── login.jsx
 │   │   │   ├── register.jsx
 │   │   │   ├── otp.jsx
@@ -190,6 +248,7 @@ project/
 │   │   └── main.jsx
 │   ├── index.html
 │   ├── package.json
+│   ├── eslint.config.js
 │   ├── vite.config.js
 │   └── vercel.json
 ├── Backend/                # Backend
@@ -204,13 +263,18 @@ project/
 │   │   ├── stripe.js
 │   │   ├── user.js
 │   │   └── verify-recaptcha.js
+│   ├── data/
+│   │   └── disposable-domains.txt
 │   ├── middlewares/
 │   │   ├── email.config.js
 │   │   ├── email.js
-│   │   └── emailTemplate.js
+│   │   ├── emailTemplate.js
+│   │   └── SmsOtp.js
 │   ├── models/
 │   │   ├── orders.js
 │   │   └── user.js
+│   ├── utils/
+│   │   └── emailValidator.js
 │   ├── index.js
 │   └── package.json
 ├── LICENSE
@@ -222,56 +286,95 @@ project/
 ### Backend API
 Custom backend API endpoints:
 
-- **Authentication:**
-  - `POST /api/register` - Register a new user
-  - `POST /api/login` - User authentication
-  - `POST /api/otp/verify` - Verify email with OTP
-  - `POST /api/otp/resend` - Resend OTP for verification
-  - `POST /api/forgotemail` - Send OTP for password reset
-  - `POST /api/resetpassword` - Reset password with OTP
+### Authentication
+- `POST /api/register`
+  - Register new user with email and phone verification
+  - Handles duplicate username/email/phone validation
+  - Triggers OTP generation and delivery
 
-- **User:**
-  - `GET /api/user/address` - Get user's saved address
-  - `POST /api/user/address` - Save user's delivery address
+- `POST /api/login`
+  - User authentication with reCAPTCHA
+  - Returns JWT token on success
+  - Handles verification status checks
 
-- **Orders:**
+- `POST /api/otp/verify`
+  - Validates both email and SMS OTP
+  - Updates user verification status
+  - Issues new JWT token after verification
+
+### Password Management
+- `POST /api/forgot-otp`
+  - Initiates password reset process
+  - Generates and sends reset OTP
+  - Handles user existence validation
+
+- `POST /api/resetpassword`
+  - Validates reset OTP
+  - Enforces password requirements
+  - Updates password with new hash
+
+### User Management
+- `GET /api/user/address`
+  - Retrieves user's saved addresses
+  - Handles geolocation data
+
+- `POST /api/user/address`
+  - Saves new delivery address
+  - Validates address components
+  - Updates existing addresses
+
+### Verification
+- `POST /api/otp/resend`
+  - Regenerates OTP for both email and phone
+  - Handles cooldown period
+  - Updates verification deadline
+
+- `POST /api/verify-recaptcha`
+  - Validates reCAPTCHA tokens
+  - Prevents automated submissions
+
+### Orders:
   - `GET /api/orders` - Get user's orders
   - `GET /api/orders/:id` - Get specific order details
   - `POST /api/orders` - Create a new order
 
-- **Payments:**
+### Payments:
   - `POST /api/stripe/payment` - Create Stripe payment sessions
   - `POST /api/stripe/webhook` - Handle Stripe webhook events
 
-- **Notifications:**
+### Notifications:
   - `POST /api/send-notification` - Send Firebase Cloud Messaging notifications
-
-- **Security:**
-  - `POST /api/verify-recaptcha` - Verify Google reCAPTCHA tokens
 
 ## 📸 Screenshots
 
-![alt text](image-3.png)
-![alt text](image-5.png)
-![alt text](image-7.png)
-![alt text](image-8.png)
-![alt text](image-9.png)
-![alt text](image-10.png)
-![alt text](image-11.png)
-![alt text](image-12.png)
-![alt text](image-13.png)
-![alt text](image-14.png)
-![alt text](image-15.png)
-![alt text](image-16.png)
+![alt text](Projectimages/image-1.png)
+![alt text](Projectimages/image-2.png)
+![alt text](Projectimages/image-5.png)
+![alt text](Projectimages/image-7.png)
+![alt text](Projectimages/image-8.png)
+![alt text](Projectimages/image-9.png)
+![alt text](Projectimages/image-10.png)
+![alt text](Projectimages/image-11.png)
+![alt text](Projectimages/image-12.png)
+![alt text](Projectimages/image-13.png)
+![alt text](Projectimages/image-14.png)
+![alt text](Projectimages/image-15.png)
+![alt text](Projectimages/image-16.png)
 
 ## 🚀 Future Enhancements
 
 - Product reviews and ratings
-- Wishlist feature
+- Wishlist feature 
 - Admin dashboard for product management
 - Enhanced notification preferences
-- Social media login options
+- Social media login options 
 - Advanced product filtering and sorting
+- Email notifications for order updates
+- Multiple payment methods support
+- Multiple addresses per user
+- Product recommendations
+- Real-time order tracking
+- Mobile app version
 
 ## 👥 Contributors
 
