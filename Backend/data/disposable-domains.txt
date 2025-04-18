@@ -8438,7 +8438,6 @@ alsosa.online
 alstop.ml
 alt.one
 alta-klinik.com
-altacazuela.es
 altaddress.com
 altaddress.net
 altaddress.org
@@ -10519,6 +10518,7 @@ asapmarket-onion.com
 asapmarketlinks.com
 asapmarketonion.com
 asapmarketurls.com
+asaption.com
 asaroad.com
 asas1.co.tv
 asasaaaf77.site
@@ -13327,6 +13327,7 @@ bauff.anonbox.net
 bauimail.ga
 baumhaus.me
 baumhotels.de
+bauscn.com
 bauty.online
 bauwerke-online.com
 baver.com
@@ -17174,6 +17175,7 @@ bper.tk
 bpg.emlpro.com
 bpghmag.com
 bpgt.yomail.info
+bph4i.anonbox.net
 bpham.info
 bpj.emlpro.com
 bpl25.anonbox.net
@@ -24579,7 +24581,6 @@ crispemedia.com
 crissey57.roastedtastyfood.com
 cristalin.ru
 cristianoguardami.ru
-cristinathevirtualassistant.com
 cristobalsalon.com
 critcijo.gq
 criteriourbano.es
@@ -25340,6 +25341,7 @@ cxetye.buzz
 cxh.laste.ml
 cxmyal.com
 cxmz.com
+cxnlab.com
 cxoc.us
 cxpcgwodagut.cf
 cxpcgwodagut.ga
@@ -30487,7 +30489,6 @@ dwswd8ufd2tfscu.gq
 dwswd8ufd2tfscu.ml
 dwswd8ufd2tfscu.tk
 dwt-damenwaeschetraeger.org
-dwterusaelah.art
 dwtu.com
 dwugio.buzz
 dwukwiat4.pl
@@ -32781,6 +32782,7 @@ enelopes.com
 enem.inep.gov.br.rotecproperty.xyz
 enemyth.com
 enercranyr.eu
+energen.live
 energeticumail.com
 energetus.pl
 energiadeportugal.com
@@ -34622,6 +34624,7 @@ f53tuxm9btcr.gq
 f53tuxm9btcr.ml
 f53tuxm9btcr.tk
 f5foster.com
+f5url.com
 f64uf.com
 f6w0tu0skwdz.cf
 f6w0tu0skwdz.ga
@@ -38644,6 +38647,7 @@ fzyutqwy3aqmxnd.gq
 fzyutqwy3aqmxnd.ml
 fzyutqwy3aqmxnd.tk
 g-case.org
+g-code.web.id
 g-kioku.com
 g-mail.com
 g-mail.gq
@@ -39949,6 +39953,7 @@ gezizsimva.com
 gf-roofing-contractors.co.uk
 gf.laste.ml
 gf.wlot.in
+gfacc.net
 gfainteriors.com
 gfbysaints.com
 gfcnet.com
@@ -52227,6 +52232,7 @@ karolinbach82.xyz
 karolinejensen.me
 karolinekleist.me
 karos-profil.de
+karpiyerca.shop
 karridea.com
 kart-mox.com
 karta-kykyruza.ru
@@ -54950,6 +54956,7 @@ labmail.fun
 labo.ch
 labogili.ga
 laboosta.click
+laboraryer.com
 laboratortehnicadentara.ro
 laboremail.ru
 laboriously.com
@@ -58313,6 +58320,7 @@ lurepam.com
 luscar.com
 lusernews.com
 lushily.top
+lushosa.com
 lusianna.ml
 lusmila.com
 lusobridge.com
@@ -68756,7 +68764,6 @@ nospamplz.linkpc.net
 nospamthanks.info
 nostockui.com
 nostrabirra.com
-nostracom.es
 nostrajewellery.xyz
 nosystem.info
 not.cowsnbullz.com
@@ -70164,6 +70171,7 @@ ohio-recount.info
 ohio-riverland.info
 ohiobluedog.com
 ohioflyfishinguides.com
+ohiorizz.ooguy.com
 ohioticketpayments.xyz
 ohkogtsh.ga
 ohkogtsh.ml
@@ -89729,6 +89737,7 @@ swautonet.com
 swc.yomail.info
 sweang.club
 sweatmail.com
+sweatpopi.com
 swedesflyshop.com
 swedit.se
 sweemri.com
@@ -93519,7 +93528,6 @@ tonermix.ru
 tongbeautylab.com
 tongkosong.com
 tongon.online
-tongos.site
 tongtolangnangka.ga
 tongtolangnangka1.ml
 tonicronk.com
@@ -100437,7 +100445,6 @@ webaff.com
 webail.co.za
 webalpilean.online
 webandgraphicdesignbyphil.com
-webanx.app
 webarena-crimea.ru
 webarnak.fr.eu.org
 webaward.online
@@ -106576,118 +106583,118 @@ zzzz1717.com
 zzzzzzzzzzzzz.com
 # fake and temp mail providers
 # https://github.com/7c/fakefilter
-# last update: 2025-04-17t00:14:35.088z
-## yopmail.com
-## cryptogmail.com
-## thnen.com
-## temp-mail.io
-## fakemailgenerator.com
-## shitmail.me
-## fex.plus
-## mail.td
-## 10minutemail.net
-## moakt.com
-## 22.do
-## fakermail.com
-## linshiyou.com
-## generator.email
-## poo.email
-## mintemail.com
-## minimail.eu.org
-## easytrashmail.com
+# last update: 2025-04-18t00:13:11.720z
+## trashmail.com
+## fakemail.net
 ## mail.gen.tr
-## txen.de
-## mailcatch.com
+## thnen.com
+## yopmail.com
+## linshiyou.com
+## mailnesia.com
+## mintemail.com
+## mail1a.de
 ## spamgourmet.com
-## static
-## etempmail.com
-## temporary-mail.net
-## tmail.mmomekong.com
-## tuamaeaquelaursa.com
-## spoofmail.de
 ## niepodam.pl
-## hizli.email
-## snapmail.cc
-## anonymmail.net
-## dropmail.me
-## tmail.gg
-## tempmail.adguard.com
-## trashmail.ws
-## 10minutemail.com
-## airmailbox.website
-## default.tmail.thehp.in
-## haribu.net
-## mohmal.com
-## tempinbox.xyz
-## lroid.com
-## mail1.io
+## temp-mail.io
+## fakermail.com
+## tuamaeaquelaursa.com
 ## mailsac.com
-## internxt.com
-## disposablemail.com
-## getnada.com
-## edumail.icu
-## mail4qa.com
-## linshi-email.com
-## mail-tester.com
+## 10minutemail.com
 ## mail-temp.com
 ## email-fake.com
-## yopmail.net
-## shitmail.org
+## mailswipe.net
+## anonmails.de
+## linshiyouxiang.net
+## linshi-email.com
+## fakemailgenerator.com
+## generator.email
+## poo.email
+## fex.plus
+## 10minutesemail.net
+## cryptogmail.com
+## altaddress.org
+## mailinator.com
+## moakt.com
+## youxiang.dev
+## internxt.com
+## temporary-mail.net
+## 10minutemail.org
+## eyepaste.com
+## txen.de
+## mailcatch.com
+## getnada.com
+## tempmail.cn
+## guerrillamail.com
+## muellmail.com
+## anonymmail.net
+## getnada.cc
+## 10minutemail.net
+## airmailbox.website
+## altmails.com
+## gecicimail.com.tr
+## minimail.eu.org
+## tmailweb.com
+## yopmail.fr
+## disposableemail.co
+## edumail.icu
+## disposeamail.com
 ## mail.gw
+## shitmail.me
+## easytrashmail.com
+## mail4qa.com
+## dropmail.me
+## anonbox.net
+## disposablemail.com
+## temp-mail.org
+## harakirimail.com
+## chacuo.net
+## tempmail.altmails.com
+## temp-inbox.com
+## dodsi.com
+## snapmail.cc
+## minuteinbox.com
+## sandvpn.com
+## byom.de
+## faxmail.co
+## shitmail.org
+## yopmail.net
+## emailnator.com
+## hizli.email
+## wegwerfemailadresse.com
+## mail-tester.com
+## mail1.io
+## trash-mail.com
 ## tempr.email
 23.8.dnsabr.com
 1mail.x24hr.com
-## emailfake.com
-## fakemail.net
-## harakirimail.com
-## temporarymail.com
-## anonbox.net
-## yopmail.fr
-## eyepaste.com
-## guerrillamail.com
-## 10minutemail.org
-## youxiang.dev
-## getnada.cc
-## tempmail.altmails.com
-## trash-mail.com
-## 10minutesemail.net
-## tempmail.plus
-## trashmail.com
-## temp-inbox.com
-## mailswipe.net
-## kuku.lu
-## faxmail.co
-## mailnesia.com
-## linshiyouxiang.net
-## temp-inbox.me
-## temporary-email.org
-## dodsi.com
-## wegwerfemailadresse.com
-## minuteinbox.com
-## altmails.com
-## disposeamail.com
-## altaddress.org
-## mailinator.com
-## trashmail.org
-## 10minutemail.info
-## anonmails.de
-## gecicimail.com.tr
 ## maildim.com
-## disposableemail.co
-## mail1a.de
-## tempail.com
+## temp-inbox.me
+## trashmail.ws
 ## tempmail.io
-## byom.de
+## temporary-email.org
+## emailfake.com
+## 22.do
+## static
+## lroid.com
+## 10minutemail.info
+## haribu.net
+## default.tmail.thehp.in
+## etempmail.com
+## tempmail.adguard.com
 ## throwaway.io
+## tmail.mmomekong.com
+## mohmal.com
+## tempmail.plus
+## spoofmail.de
+## mail.td
+## tempail.com
+## tempinbox.xyz
 ## 24hour.email
-## chacuo.net
-## tempmail.cn
-## sandvpn.com
-## muellmail.com
-## temp-mail.org
-## tmailweb.com
-## emailnator.com
+## trashmail.org
+## kuku.lu
 ## emailondeck.com
+## temporarymail.com
+## tmail.gg
 ## spamdecoy.net
 ## tempmailo.com
 ## luxusmail.org

@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken"
 import { sendVerificationEmail } from "../middlewares/email.js";
 import { isDisposableEmail } from '../utils/emailValidator.js';
 import { sendSMSOTP } from '../middlewares/SmsOtp.js';
+import { validatePhoneNumber, isDisposablePhoneNumber } from "../utils/phoneNumberValidator.js";
 dotenv.config();
 
 const router = express.Router();
@@ -13,19 +14,25 @@ const router = express.Router();
 router.post("/", async (req, res) => {
     try {
         const { username, email, password,phoneNumber } = req.body;
+        if (!username?.trim() || !email?.trim() || !password?.trim() || !phoneNumber?.trim()) {
+          return res.status(400).json({
+              success: false,
+              message: "All fields are required"
+          });
+      }
         const existingUser = await user.findOne({
             $or: [
-              { username },
-              { email },
-              {PhoneNumber:phoneNumber},
+              { username:username?.trim()},
+              { email:email?.trim() },
+              { PhoneNumber:phoneNumber?.trim() },
             ]
           });
           if (existingUser && existingUser.isVerified===false) {
             await user.findOneAndDelete({
               $or: [
-                { username },
-                { email },
-                {PhoneNumber:phoneNumber},
+                { username:username?.trim() },
+                { email:email?.trim() },
+                { PhoneNumber:phoneNumber?.trim() },
               ]
             })
           }
@@ -41,6 +48,22 @@ router.post("/", async (req, res) => {
                 message: "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character"
             });
         }
+        
+        const phoneValidation = await validatePhoneNumber(phoneNumber);
+        if (!phoneValidation.isValid) {
+            return res.status(400).json({
+                success: false,
+                message: phoneValidation.reason
+            });
+        }
+        const isDisposable = await isDisposablePhoneNumber(phoneValidation.phoneNumber);
+        if (isDisposable) {
+            return res.status(400).json({
+                success: false,
+                message: "Disposable or virtual phone numbers are not allowed"
+            });
+        }
+        
         if (isDisposableEmail(email)) {
           return res.status(400).json({
               success: false,
@@ -52,15 +75,15 @@ router.post("/", async (req, res) => {
         const verifiedTill = new Date(Date.now() + 24*60*60*1000);
         const validTill = new Date(Date.now() + 7*24*60*60*1000);
         const hashedPassword = await bcrypt.hash(password, 10);
-
+        const standardizedPhone = phoneValidation.phoneNumber;
         const newUser = new user({
           username:username.trim(),
-          email,
+          email: email.trim(),
           password: hashedPassword,
           Email_otp:otp,
           Phone_otp:otp2,
           verifiedTill,
-          PhoneNumber:phoneNumber,
+          PhoneNumber: standardizedPhone.trim(),
           ValidTill:validTill
         });
         await newUser.save();
@@ -69,7 +92,11 @@ router.post("/", async (req, res) => {
             await sendVerificationEmail(email, otp);
             await sendSMSOTP(phoneNumber, otp2);
         } catch (emailError) {
-            console.error('Failed to send verification:', error);
+            console.error('Failed to send verification:', emailError);
+            return res.status(500).json({
+                success: false,
+                message: "Failed to send verification email or SMS. Please try again."
+            });
         }
 
         const token = jwt.sign(
@@ -89,7 +116,7 @@ router.post("/", async (req, res) => {
               username: newUser.username,
               isVerified: false,
               email: newUser.email,
-              phoneNumber:newUser.phoneNumber,
+              phoneNumber:newUser.PhoneNumber,
             }
         });
     } catch (error) {

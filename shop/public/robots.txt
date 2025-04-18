@@ -1,0 +1,42 @@
+# Website: https://shopify-tau-seven.vercel.app/
+# Updated: 2025-04-18
+
+User-agent: *
+
+# Allow product-related pages
+Allow: /
+Allow: /products
+Allow: /products/*
+Allow: /product/*
+Allow: /productListing
+Allow: /sitemap.xml
+Allow: /static/*
+Allow: /images/*
+Allow: /icon.png
+
+# Protect authentication & personal pages
+Disallow: /login
+Disallow: /register
+Disallow: /forgotemail
+Disallow: /otp
+Disallow: /resetpassword
+Disallow: /cart
+Disallow: /orders
+Disallow: /orders/*
+Disallow: /success
+Disallow: /api/
+Disallow: /user/*
+Disallow: /*?*
+
+# Block specific bots
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+# Crawling rate control
+Crawl-delay: 5
+
+# Sitemap
+Sitemap: https://shopify-tau-seven.vercel.app/sitemap.xml

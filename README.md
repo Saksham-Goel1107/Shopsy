@@ -2,7 +2,7 @@
 
 ## 🚀 Live Demo
 
-## Shutdown Due To High Cost of Running
+### Currently Shutdown Due To High Cost of Running
 
 ## Overview
 
@@ -51,10 +51,19 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
 
 ### Phone Number Verification
 - **SMS Integration**
-  - International phone number support
-  - Country code selection
+  - International phone number support with libphonenumber-js validation
+  - Enhanced disposable number detection
+  - Country code validation and standardization
   - Phone number format validation
   - Real-time SMS delivery
+  - Multi-layer validation:
+    - Local pattern matching
+    - Known disposable number database
+    - Abstract API verification
+    - Carrier validation
+  - Blocks VoIP and virtual numbers
+  - Caches validation results for better performance
+  - Regular updates to disposable number database
 
 ## 🚀 Features
 
@@ -172,6 +181,7 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
    TWILIO_ACCOUNT_SID=your_twilio_account_sid
    TWILIO_AUTH_TOKEN=your_twilio_auth_token
    TWILIO_PHONE_NUMBER=your_twilio_phone_number
+   ABSTRACT_PHONE_API_KEY=your_abstract_phone_api_key
    ```
 
 6. Start the backend server
@@ -224,6 +234,8 @@ project/
 ├── shop/                   # Frontend
 │   ├── public/
 │   │   ├── firebase-messaging-sw.js
+│   │   ├── robots.txt
+│   │   ├── sitemap.xml
 │   │   ├── icon.png
 │   │   └── vite.svg
 │   ├── src/
@@ -264,7 +276,8 @@ project/
 │   │   ├── user.js
 │   │   └── verify-recaptcha.js
 │   ├── data/
-│   │   └── disposable-domains.txt
+│   │   ├──  disposable-domains.txt
+|   |   └──disposableNumbers.json
 │   ├── middlewares/
 │   │   ├── email.config.js
 │   │   ├── email.js
@@ -274,7 +287,8 @@ project/
 │   │   ├── orders.js
 │   │   └── user.js
 │   ├── utils/
-│   │   └── emailValidator.js
+│   │   ├──  emailValidator.js
+│   │   └── phoneNumberValidator.js
 │   ├── index.js
 │   └── package.json
 ├── LICENSE
@@ -354,7 +368,8 @@ Custom backend API endpoints:
 ![alt text](Projectimages/image-5.png)
 ![alt text](Projectimages/image-7.png)
 ![alt text](Projectimages/image-8.png)
-![alt text](Projectimages/image-9.png)
+![alt text](Projectimages/image3.png)
+![alt text](Projectimages/image4.png)
 ![alt text](Projectimages/image-10.png)
 ![alt text](Projectimages/image-11.png)
 ![alt text](Projectimages/image-12.png)
