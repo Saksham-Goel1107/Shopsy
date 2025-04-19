@@ -1,4 +1,3 @@
-import { jwtDecode } from 'jwt-decode';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -13,15 +12,6 @@ function ProductListing() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) navigate("/login") 
-      const decoded = jwtDecode(token);    
-    
-    if (token && decoded?.isVerified===false) {
-      navigate('/otp')
-    }
-
-
     const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
     setCart(storedCart);
 

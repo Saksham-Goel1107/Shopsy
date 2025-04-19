@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faStore, faClock, faReceipt, faBell } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faStore, faClock, faReceipt, faBell, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { getToken, onMessage } from 'firebase/messaging';
 import { messaging } from '../firebase';
 
@@ -10,15 +10,24 @@ function Success() {
   const [orderNumber, setOrderNumber] = useState('');
   const [notificationSent, setNotificationSent] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(null);
+  const [isValidAccess, setIsValidAccess] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('order_id');
+  const paymentSessionId = searchParams.get('session_id');
 
   useEffect(() => {
+    const checkoutInitiated = sessionStorage.getItem('checkoutInitiated');
+    if (!orderId && !paymentSessionId && !checkoutInitiated) {
+      navigate('/products');
+      return;
+    }
+    
+    setIsValidAccess(true);
+    sessionStorage.removeItem('checkoutInitiated');
     
     if (orderId) {
       setOrderNumber(orderId.substring(0, 8));
-      
       
       const checkOrderStatus = async () => {
         try {
@@ -117,7 +126,22 @@ function Success() {
       clearInterval(countdownInterval);
       unsubscribe();
     };
-  }, [navigate, orderId, orderNumber]);
+  }, [navigate, orderId, paymentSessionId, orderNumber]);
+
+  if (!isValidAccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-10 rounded-lg shadow-md max-w-lg w-full text-center">
+          <FontAwesomeIcon 
+            icon={faExclamationTriangle} 
+            className="text-6xl text-yellow-500 mb-6" 
+          />
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">Redirecting...</h2>
+          <p className="text-gray-600">Please wait while we redirect you to the proper page.</p>
+        </div>
+      </div>
+    );
+  }
   
   const sendLocalNotification = (orderNum) => {
     if ('Notification' in window && Notification.permission === 'granted') {

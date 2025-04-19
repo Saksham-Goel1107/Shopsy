@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faExclamationTriangle,
@@ -25,26 +24,79 @@ function OTP() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) navigate("/register")
-    const decoded = jwtDecode(token);
-
-    if (token && decoded?.isVerified === true) {
-      navigate('/products')
+    if (!token) {
+      navigate("/register");
+      return;
     }
-    setUserEmail(decoded?.email);
-  setUserPhone(decoded?.phoneNumber);
+    
+    async function verifyUserToken() {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/verify-token`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!res.ok) {
+          localStorage.removeItem('token');
+          navigate("/register");
+          return;
+        }
+        
+        const data = await res.json();
+        
+        if (data.valid) {
+          if (data.decoded?.isVerified === true) {
+            navigate('/products');
+            return;
+          }
+          
+          setUserEmail(data.decoded?.email);
+          setUserPhone(data.decoded?.phoneNumber);
+        } else {
+          navigate("/register");
+        }
+      } catch (err) {
+        console.error('Token validation error:', err);
+        localStorage.removeItem('token');
+        navigate("/register");
+      }
+    }
+    
+    verifyUserToken();
+    
     const countdown = setInterval(() => {
       setTimer((prevTimer) => (prevTimer > 0 ? prevTimer - 1 : 0));
     }, 1000);
 
     return () => clearInterval(countdown);
-  }, []);
+  }, [navigate]);
 
   const confirmBack = async () => {
     try {
       const token = localStorage.getItem('token');
-      const decoded = jwtDecode(token);
-      const email = decoded?.email;
+      if (!token) {
+        navigate('/register');
+        return;
+      }
+      
+      const verifyRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/verify-token`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!verifyRes.ok) {
+        navigate('/register');
+        return;
+      }
+      
+      const verifyData = await verifyRes.json();
+      const email = verifyData.decoded?.email;
 
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/otp/cancel-registration`, {
         method: 'DELETE',
@@ -131,8 +183,34 @@ function OTP() {
       return;
     }
 
-    const decoded = jwtDecode(token);
-    const email = decoded?.email;
+    let email;
+    try {
+      const verifyRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/verify-token`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!verifyRes.ok) {
+        setError('Invalid authentication token');
+        navigate('/register');
+        return;
+      }
+      
+      const verifyData = await verifyRes.json();
+      email = verifyData.decoded?.email;
+      
+      if (!email) {
+        setError('User email not found');
+        return;
+      }
+    } catch (err) {
+      console.error('Token validation error:', err);
+      setError('Authentication failed');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -175,8 +253,36 @@ function OTP() {
       navigate('/register');
       return;
     }
-    const decoded = jwtDecode(token);
-    const email = decoded?.email;
+    
+    let email;
+    try {
+      const verifyRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/verify-token`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!verifyRes.ok) {
+        setError('Invalid authentication token');
+        navigate('/register');
+        return;
+      }
+      
+      const verifyData = await verifyRes.json();
+      email = verifyData.decoded?.email;
+      
+      if (!email) {
+        setError('User email not found');
+        return;
+      }
+    } catch (err) {
+      console.error('Token validation error:', err);
+      setError('Authentication failed');
+      return;
+    }
+    
     try {
       setIsResending(true);
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/otp/resend`, {
@@ -209,10 +315,10 @@ function OTP() {
           </h2>
 
           <p className="text-center text-gray-600 mb-6">
-  We have sent verification codes to:<br />
-  <span className="font-medium">Email: {userEmail}</span><br />
-  <span className="font-medium">Phone: {userPhone}</span>
-</p>
+            We have sent verification codes to:<br />
+            <span className="font-medium">Email: {userEmail}</span><br />
+            <span className="font-medium">Phone: {userPhone}</span>
+          </p>
 
           {error && (
             <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -295,6 +401,7 @@ function OTP() {
               {isResending ? 'Resending...' : timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
             </button>
           </div>
+          
           {showLogoutModal && (
             <div
               className="fixed inset-0 bg-opacity-10 z-40 flex items-center justify-center backdrop-blur-sm"
@@ -332,6 +439,7 @@ function OTP() {
               </div>
             </div>
           )}
+          
           <div className="mt-4 text-center">
             <button
               onClick={handleBack}

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
 
 function ProductDetail() {
   const { id } = useParams();
@@ -10,15 +9,6 @@ function ProductDetail() {
   const navigate = useNavigate();
 
   useEffect(() => {
-     const token = localStorage.getItem('token');
-        if (!token) navigate("/login") 
-          const decoded = jwtDecode(token);
-        
-        
-        if (token && decoded?.isVerified===false) {
-          navigate('/otp')
-        }
-
     const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
     setCart(storedCart);
 
@@ -66,7 +56,7 @@ function ProductDetail() {
     setCart(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart));
     window.dispatchEvent(new Event('storage'));
-    
+
   };
 
   const handleUpdateQuantity = (product, delta) => {
@@ -81,7 +71,7 @@ function ProductDetail() {
 
     if (existingProductIndex !== -1) {
       const newQuantity = updatedCart[existingProductIndex].quantity + delta;
-      
+
       if (newQuantity <= 0) {
         updatedCart.splice(existingProductIndex, 1);
       } else {
@@ -102,13 +92,13 @@ function ProductDetail() {
       <div className="bg-white rounded-lg shadow-md overflow-hidden p-6">
         <div className="md:flex">
           <div className="md:w-1/2 flex justify-center items-start">
-            <img 
-              src={product.image} 
-              alt={product.title} 
+            <img
+              src={product.image}
+              alt={product.title}
               className="w-64 h-64 object-contain"
             />
           </div>
-          
+
           <div className="md:w-1/2 mt-4 md:mt-0 md:ml-6">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">{product.title}</h2>
             <p className="text-blue-600 text-xl font-bold mb-4">${product.price.toFixed(2)}</p>
@@ -118,7 +108,7 @@ function ProductDetail() {
               </span>
             </div>
             <p className="text-gray-600 mb-6">{product.description}</p>
-            
+
             <div className="mt-6">
               {getProductQuantity(product.id) > 0 ? (
                 <div className="flex items-center justify-between border rounded">

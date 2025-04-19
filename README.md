@@ -245,6 +245,7 @@ project/
 │   │   │   ├── cart.jsx
 │   │   │   ├── forgotemail.jsx
 │   │   │   ├── login.jsx
+│   │   │   ├── NotFound.jsx
 │   │   │   ├── register.jsx
 │   │   │   ├── otp.jsx
 │   │   │   ├── resetpassword.jsx
@@ -266,6 +267,7 @@ project/
 ├── Backend/                # Backend
 │   ├── api/
 │   │   ├── forgot-otp.js
+│   │   ├── googleauth.js
 │   │   ├── login.js
 │   │   ├── notification.js
 │   │   ├── orders.js
@@ -377,6 +379,7 @@ Custom backend API endpoints:
 ![alt text](Projectimages/image-14.png)
 ![alt text](Projectimages/image-15.png)
 ![alt text](Projectimages/image-16.png)
+![alt text](Projectimages/image-17.png)
 
 ## 🚀 Future Enhancements
 
