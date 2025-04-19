@@ -7,11 +7,43 @@ import { sendVerificationEmail } from "../middlewares/email.js";
 import { isDisposableEmail } from '../utils/emailValidator.js';
 import { sendSMSOTP } from '../middlewares/SmsOtp.js';
 import { validatePhoneNumber, isDisposablePhoneNumber } from "../utils/phoneNumberValidator.js";
+import { createClient } from "redis";
+import RedisStore from "rate-limit-redis";
+import rateLimit from "express-rate-limit";
+import zxcvbn from 'zxcvbn';
+import { checkPasswordBreaches } from "../utils/passwordCheck.js";
 dotenv.config();
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+const redisClient = createClient({
+    socket: {
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT ,
+    },
+    password: process.env.REDIS_PASSWORD ,
+});
+
+(async () => {
+    try {
+        await redisClient.connect();
+        console.log('Connected to register Redis successfully');
+    } catch (err) {
+        console.error('Redis connection error:', err);
+    }
+})();
+
+const registerLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 5, 
+    store: new RedisStore({
+            sendCommand: (...args) => redisClient.sendCommand(args),
+            prefix: 'register-rate-limit:',
+        }),
+    message: "Too many register attempts from this IP, please try again later."
+});
+
+router.post("/",registerLimiter, async (req, res) => {
     try {
         const { username, email, password,phoneNumber } = req.body;
         if (!username?.trim() || !email?.trim() || !password?.trim() || !phoneNumber?.trim()) {
@@ -42,13 +74,26 @@ router.post("/", async (req, res) => {
               message: "Username or email or Phone Number already exists"
             });
           }
+          const result = zxcvbn(password);
+          if (result.score < 3) {
+            return res.status(400).json({
+                success: false,
+                message: "Password is too weak. Please choose a stronger password."
+            });
+        }
           if (!(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/).test(password)) {
             return res.status(400).json({
                 success: false,
                 message: "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character"
             });
-        }
-        
+        }     
+        const breachCheck = await checkPasswordBreaches(password);
+        if (!breachCheck.safe) {
+            return res.status(400).json({
+                success: false,
+                message: `This password has appeared in data breaches ${breachCheck.count.toLocaleString()} times. Please choose a different password.`
+            });
+        }  
         const phoneValidation = await validatePhoneNumber(phoneNumber);
         if (!phoneValidation.isValid) {
             return res.status(400).json({

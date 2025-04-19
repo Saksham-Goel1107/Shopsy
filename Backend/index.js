@@ -13,6 +13,9 @@ import otpRouter from "./api/otp.js"
 import forgotemailRouter from "./api/forgot-otp.js"
 import resetPasswordRouter from "./api/reset-password.js"
 import googleAuthRouter from "./api/googleauth.js"; 
+import verifyTokenRouter from "./api/verifytoken.js";
+import helmet from "helmet";
+import hpp from 'hpp';
 
 dotenv.config();
 
@@ -26,11 +29,9 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.error('MongoDB connection error:', err);
 });
 
-const allowedOrigins = [
-  'http://localhost:5173', 
-  'https://shopify-tau-seven.vercel.app',
-];
-
+const allowedOrigins = 
+  process.env.NODE_ENV==='production' ? ['https://shopify-tau-seven.vercel.app'] : ['http://localhost:5173','https://shopify-tau-seven.vercel.app']
+ 
 const app = express();
 
 app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), (req, res) => {
@@ -54,6 +55,19 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
+app.set('trust proxy', 1);
+app.use(hpp());
+app.use(helmet());
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: ["'self'", "https://api.twilio.com"],
+      objectSrc: ["'none'"],
+    },
+  })
+);
 app.use("/api/verify-recaptcha", recaptchaRouter);
 app.use("/api/stripe", stripeRouter);
 app.use("/api/user", userRouter);
@@ -65,6 +79,7 @@ app.use("/api/otp", otpRouter);
 app.use("/api/forgotemail", forgotemailRouter);
 app.use("/api/resetpassword", resetPasswordRouter);
 app.use("/api/google-auth", googleAuthRouter); 
+app.use("/api/verify-token", verifyTokenRouter);
 
 app.get("/", (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
@@ -83,6 +98,8 @@ app.get("/", (req, res) => {
       '/api/forgotemail',
       "/api/resetpassword",
       "/api/google-auth",
+      "/api/verify-token",
+      "/api/status",
     ]
   });
 });

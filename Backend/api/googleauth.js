@@ -2,12 +2,49 @@ import express from "express";
 import dotenv from "dotenv";
 import User from "../models/user.js";
 import jwt from "jsonwebtoken";
+import { createClient } from "redis";
+import RedisStore from "rate-limit-redis";
+import rateLimit from "express-rate-limit";
 
 dotenv.config();
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+const redisClient = createClient({
+    socket: {
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT ,
+    },
+    password: process.env.REDIS_PASSWORD ,
+});
+
+(async () => {
+    try {
+        await redisClient.connect();
+        console.log('Connected to login Redis successfully');
+    } catch (err) {
+        console.error('Redis connection error:', err);
+    }
+})();
+
+const GoogleloginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 5, 
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: new RedisStore({
+        sendCommand: (...args) => redisClient.sendCommand(args),
+        prefix: 'login-rate-limit:',
+    }),
+    handler: (req, res) => {
+        return res.status(429).json({
+            success: false,
+            message: "Too many login attempts from this IP, please try again later."
+    });
+    }
+});
+
+router.post("/",GoogleloginLimiter, async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -28,6 +65,7 @@ router.post("/", async (req, res) => {
           phoneNumber: existingUser.PhoneNumber,
         },
         process.env.JWT_SECRET,
+        { expiresIn: "7d" }
       );
       return res.status(200).json({
         success: true,
@@ -49,6 +87,7 @@ router.post("/", async (req, res) => {
             phoneNumber: existingUser.PhoneNumber,
           },
           process.env.JWT_SECRET,
+        { expiresIn: "7d" }
         );
         return res.status(400).json({
             success: false,

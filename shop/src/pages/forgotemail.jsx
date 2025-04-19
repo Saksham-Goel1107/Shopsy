@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState,useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { Link } from 'react-router-dom';
 
 function ForgotEmail() {
@@ -7,13 +8,34 @@ function ForgotEmail() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const recaptchaRef = useRef(null);
+  const [captchaValue, setCaptchaValue] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!captchaValue) {
+      setError('Please complete the reCAPTCHA verification');
+      return;
+    }
     setLoading(true);
 
     try {
+      const verifyResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/verify-recaptcha`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: captchaValue }),
+      });
+
+      const verifyData = await verifyResponse.json();
+
+      if (!verifyData.success) {
+        setError('reCAPTCHA verification failed. Please try again.');
+        setLoading(false);
+        recaptchaRef.current?.reset();
+        setCaptchaValue(null);
+        return;
+      }
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/forgotemail`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -21,13 +43,20 @@ function ForgotEmail() {
       });
       const data = await res.json();
       if (!data.success) {
+        if(data.message === 'No Such User Exists') {
+          setTimeout(()=>navigate("/register"),1000)
+        }
         setError(data.message || 'Failed to send reset link.');
         setLoading(false);
+        recaptchaRef.current?.reset();
+        setCaptchaValue(null);
         return;
       }
       navigate('/resetpassword', { state: { email } });
     } catch (err) {
       setError('Something went wrong. Please try again.');
+      recaptchaRef.current?.reset();
+      setCaptchaValue(null);
     } finally {
       setLoading(false);
     }
@@ -61,10 +90,20 @@ function ForgotEmail() {
                 disabled={loading}
               />
             </div>
+            <div className="flex justify-center">
+
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={import.meta.env.VITE_REACT_APP_SITE_KEY}
+                onChange={(value) => {
+                  setCaptchaValue(value);
+                }}
+              />
+            </div>
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !captchaValue}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 cursor-pointer"
               >
                 {loading ? 'Sending...' : 'Send Reset Link'}

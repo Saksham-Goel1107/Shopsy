@@ -11,18 +11,26 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
     "firebase-admin": "^13.2.0",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.2",
     "libphonenumber-js": "^1.12.7",
     "mongoose": "^8.13.2",
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.10.1",
+    "rate-limit-redis": "^4.2.0",
+    "redis": "^4.7.0",
     "stripe": "^18.0.0",
-    "twilio": "^5.5.2"
+    "twilio": "^5.5.2",
+    "zxcvbn": "^4.4.2"
   }
 }

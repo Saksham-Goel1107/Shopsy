@@ -265,6 +265,8 @@ const proceedWithCheckout = async (locationData) => {
     setLoading(true);
     const token = localStorage.getItem('token');
     
+    sessionStorage.setItem('checkoutInitiated', 'true');
+    
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stripe/payment`, {
       method: 'POST',
       headers: {

@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Link } from 'react-router-dom';
-import { jwtDecode } from "jwt-decode"
 
 function Register() {
   const [username, setUsername] = useState('');
@@ -23,17 +22,40 @@ function Register() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) return
-    const decoded = jwtDecode(token);
-
-    if (token && decoded?.isVerified === true) {
-      navigate('/products')
+    if (!token) return;
+    
+    async function verifyUserToken() {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/verify-token`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!res.ok) {
+          localStorage.removeItem('token');
+          return;
+        }
+        
+        const data = await res.json();
+        
+        if (data.valid) {
+          if (data.decoded?.isVerified) {
+            navigate('/products');
+          } else {
+            navigate('/otp');
+          }
+        }
+      } catch (err) {
+        console.error('Token validation error:', err);
+        localStorage.removeItem('token');
+      }
     }
-    else if (token && decoded?.isVerified === false) {
-      navigate('/otp')
-    }
-  }, [])
-
+    
+    verifyUserToken();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

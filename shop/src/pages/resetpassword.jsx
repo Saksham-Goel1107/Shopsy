@@ -10,9 +10,11 @@ function ResetPassword() {
   const navigate = useNavigate();
   const email = location.state?.email || '';
 
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState(['','','','','']);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isResending, setIsResending] = useState(false);
+  const [timer, setTimer] = useState(60);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -28,6 +30,10 @@ function ResetPassword() {
         state: { message: 'Please enter your email to reset password' } 
       });
     }
+    const countdown = setInterval(() => {
+    setTimer((prevTimer) => (prevTimer > 0 ? prevTimer - 1 : 0));
+    }, 1000);
+    return () => clearInterval(countdown);
   }, []);
   if (!email) {
     return null; 
@@ -39,6 +45,32 @@ function ResetPassword() {
 
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword((prev) => !prev);
+  };
+
+  const handleOtpChange = (element, index) => {
+    if (isNaN(element.value)) return false;
+
+    setOtp(prev => prev.map((d, idx) => (idx === index ? element.value : d)));
+
+    if (element.value && element.nextSibling) {
+      element.nextSibling.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (e, index) => {
+    if (e.key === 'Backspace') {
+      if (!otp[index] && index > 0) {
+        const prevInput = e.target.previousSibling;
+        if (prevInput) {
+          prevInput.focus();
+        }
+      }
+      setOtp(prev => prev.map((d, idx) => (idx === index ? '' : d)));
+    }
+    if (e.key === ' ' || e.code === 'Space') {
+      e.preventDefault();
+      return;
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -78,10 +110,12 @@ function ResetPassword() {
         return;
       }
 
+      const otpValue = otp.join('');
+      
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/resetpassword`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, password }),
+        body: JSON.stringify({ email, otp: otpValue, password }),
       });
       const data = await res.json();
       if (!data.success) {
@@ -101,6 +135,32 @@ function ResetPassword() {
     }
   };
 
+  const handleResendOTP = async () => {
+    if (timer !== 0) return;
+ 
+    try {
+      setIsResending(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/resetpassword/resend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setTimer(60);
+        setError('');
+      } else {
+        setError(data.message);
+      }
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      setError('Failed to resend OTP. Please try again.');
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="max-w-md w-full bg-white rounded-lg shadow-md overflow-hidden">
@@ -108,6 +168,10 @@ function ResetPassword() {
           <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-6">
             Reset Password
           </h2>
+          <p className="text-center text-gray-600 mb-6">
+            We have sent verification codes to:<br />
+            <span className="font-medium">{email}</span>
+          </p>
           {error && (
             <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
               {error}
@@ -119,20 +183,31 @@ function ResetPassword() {
             </div>
           )}
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 text-center">
                 OTP
               </label>
-              <input
-                id="otp"
-                name="otp"
-                type="text"
-                required
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                disabled={loading}
-              />
+              <div className="flex justify-center gap-2">
+                {otp.map((digit, index) => (
+                  <input
+                    key={`otp-${index}`}
+                    id={`otp-${index}`}
+                    name="otp"
+                    type="text"
+                    maxLength="1"
+                    inputMode='numeric'
+                    pattern="[0-9]*"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(e.target, index)}
+                    onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-12 h-12 text-center text-xl border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    aria-label={`OTP digit ${index + 1}`}
+                    disabled={loading}
+                    required
+                  />
+                ))}
+              </div>
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
@@ -194,13 +269,26 @@ function ResetPassword() {
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !captchaValue}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 cursor-pointer"
               >
                 {loading ? 'Resetting...' : 'Reset Password'}
               </button>
             </div>
           </form>
+          <div className="mt-6 text-center">
+            <button
+              onClick={handleResendOTP}
+              disabled={timer > 0 || isResending}
+              className={`text-sm font-medium cursor-pointer ${
+                timer > 0 || isResending
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-blue-600 hover:text-blue-800'
+              }`}
+            >
+              {isResending ? 'Resending...' : timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
+            </button>
+          </div>
           <div className="flex justify-center mt-4">
             <Link
               to="/login"

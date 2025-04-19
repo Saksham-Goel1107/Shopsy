@@ -7,13 +7,69 @@ import {
   sendVerificationEmail,
   sendWelcomeEmail,
 } from "../middlewares/email.js";
+import { createClient } from "redis";
+import RedisStore from "rate-limit-redis";
+import rateLimit from "express-rate-limit";
 
 const router = express.Router();
 dotenv.config();
 
-router.post('/verify', async (req, res) => {
-  const { emailOtp, email,phoneOtp } = req.body;
-  const user = await User.findOne({ email });
+const redisClient = createClient({
+  socket: {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+  },
+  password: process.env.REDIS_PASSWORD,
+});
+
+(async () => {
+  try {
+    await redisClient.connect();
+    console.log("Connected to login Redis successfully");
+  } catch (err) {
+    console.error("Redis connection error:", err);
+  }
+})();
+
+const OtpVerifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new RedisStore({
+    sendCommand: (...args) => redisClient.sendCommand(args),
+    prefix: "otp-verify-rate-limit:",
+  }),
+  handler: (req, res) => {
+    return res.status(429).json({
+      success: false,
+      message:
+        "Too many verification request attempts from this IP, please try again later.",
+    });
+  },
+});
+
+const OtpResendingLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 2,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new RedisStore({
+    sendCommand: (...args) => redisClient.sendCommand(args),
+    prefix: "otp-resend-rate-limit:",
+  }),
+  handler: (req, res) => {
+    return res.status(429).json({
+      success: false,
+      message:
+        "Too many resending request attempts from this IP, please try again later.",
+    });
+  },
+});
+
+router.post('/verify', OtpVerifyLimiter, async (req, res) => {
+  const { emailOtp, email, phoneOtp } = req.body;
+  const user = await User.findOne({ email: email?.trim() });
 
   if (!user) {
     return res.status(404).json({
@@ -68,7 +124,7 @@ router.post('/verify', async (req, res) => {
   });
 });
 
-router.post('/resend', async (req, res) => {
+router.post('/resend', OtpResendingLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     
@@ -79,7 +135,7 @@ router.post('/resend', async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email:email?.trim() });
 
     if (!user) {
       return res.status(404).json({
@@ -133,7 +189,7 @@ router.delete('/cancel-registration', async (req, res) => {
       });
     }
 
-    const user = await User.findOneAndDelete({ email });
+    const user = await User.findOneAndDelete({ email:email?.trim() });
 
     if (!user) {
       return res.status(404).json({

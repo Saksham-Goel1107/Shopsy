@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ProductListing from './pages/productListing';
 import ProductDetail from './pages/productDetails';
 import Cart from './pages/cart';
@@ -12,17 +12,14 @@ import Orders from './pages/orders';
 import OrderDetail from './pages/orderDetail';
 import Register from './pages/register';
 import Otp from './pages/otp';
-import { jwtDecode } from 'jwt-decode';
 import ForgotEmail from "./pages/forgotemail"
 import ResetPassword from "./pages/resetpassword"
+import NotFound from './pages/NotFound';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return 
-    const decoded = jwtDecode(token);
-    return token && decoded?.isVerified;
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
   
   async function requestPermission() {
     const permission = Notification.permission;
@@ -35,13 +32,11 @@ function App() {
       }
     } else if (permission === 'granted') {
       try {
-
         const token = await getToken(messaging, {
           vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
         });
 
         if (token) {
-
           localStorage.setItem('fcmToken', token);
         }
       } catch (error) {
@@ -50,31 +45,72 @@ function App() {
     }
   }
 
+  const verifyToken = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setIsAuthenticated(false);
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/verify-token`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!res.ok) {
+        console.error(`Token verification failed with status: ${res.status}`);
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
+      
+      const data = await res.json();
+
+      if (!data.valid) {
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+      } else {
+        const user = data.decoded?.isVerified;
+        setIsAuthenticated(user);
+        if (token && !user) {
+          navigate('/otp');
+        }
+      }
+    } catch (err) {
+      console.error('Token validation error:', err);
+      setIsAuthenticated(false);
+      localStorage.removeItem('token');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     requestPermission();
-    const checkAuth = () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const user = jwtDecode(token);
-          setIsAuthenticated(user?.isVerified);
-        } catch (error) {
-          localStorage.removeItem('token');
-          setIsAuthenticated(false);
-        }
-      } else {
-        setIsAuthenticated(false);
-      }
+    verifyToken();
+    
+    const handleAuthChange = () => {
+      verifyToken();
     };
 
-    window.addEventListener('auth-change', checkAuth);
-    window.addEventListener('storage', checkAuth);
+    window.addEventListener('auth-change', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
 
     return () => {
-      window.removeEventListener('auth-change', checkAuth);
-      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('auth-change', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
     };
-  }, []);
+  }, [navigate]);
+
+  if (isLoading) {
+    return <div className="container mx-auto p-6 text-center">Loading...</div>;
+  }
 
   return (
     <>
@@ -85,13 +121,14 @@ function App() {
         <Route path="/register" element={isAuthenticated ? <ProductListing /> : <Register />} />
         <Route path="/forgot" element={isAuthenticated ? <ProductListing /> : <ForgotEmail />} />
         <Route path="/resetpassword" element={isAuthenticated ? <ProductListing /> : <ResetPassword />} />
-        <Route path="/products" element={<ProductListing />} />
-        <Route path="/products/:id" element={<ProductDetail />} />
-        <Route path="/cart" element={isAuthenticated ? <Cart /> : <Login />} />
+        <Route path="/products" element={isAuthenticated ? <ProductListing /> : <Navigate to="/login" />} />
+        <Route path="/products/:id" element={isAuthenticated ? <ProductDetail /> : <Navigate to="/login" />} />
+        <Route path="/cart" element={isAuthenticated ? <Cart /> : <Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/success" element={<Success />} />
-        <Route path="/orders" element={isAuthenticated ? <Orders /> : <Login />} />
-        <Route path="/orders/:orderId" element={isAuthenticated ? <OrderDetail /> : <Login />} />
+        <Route path="/success" element={isAuthenticated ? <Success /> : <Navigate to="/login" />} />
+        <Route path="/orders" element={isAuthenticated ? <Orders /> : <Navigate to="/login" />} />
+        <Route path="/orders/:orderId" element={isAuthenticated ? <OrderDetail /> : <Navigate to="/login" />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );

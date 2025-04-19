@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Link } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
 import { auth, googleProvider } from '../firebase';
 import { signInWithPopup } from 'firebase/auth';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
@@ -21,17 +20,40 @@ function Login() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) return
-    const decoded = jwtDecode(token);
-    const user = decoded?.isVerified;
-
-    if (token && user) {
-      navigate('/products')
+    if (!token) return;
+    
+    async function verifyUserToken() {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/verify-token`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!res.ok) {
+          localStorage.removeItem('token');
+          return;
+        }
+        
+        const data = await res.json();
+        
+        if (data.valid) {
+          if (data.decoded?.isVerified) {
+            navigate('/products');
+          } else {
+            navigate('/otp');
+          }
+        }
+      } catch (err) {
+        console.error('Token validation error:', err);
+        localStorage.removeItem('token');
+      }
     }
-    else if (token && !user) {
-      navigate('/otp')
-    }
-  }, [])
+    
+    verifyUserToken();
+  }, [navigate]);
 
 
   const handleGoogleSignIn = async () => {
@@ -53,6 +75,11 @@ function Login() {
       });
 
       const resData = await res.json();
+      if(!resData.success && resData?.message === 'User Not Found') {
+        setError(resData.message);
+        setTimeout(() => navigate('/register'), 1000);
+        return;
+      }
       if (!resData.success) {
         if(resData?.message === 'User Not Verified') {
           setError(resData.message);

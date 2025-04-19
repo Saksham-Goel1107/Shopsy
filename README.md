@@ -10,6 +10,19 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
 
 ## 🔒 Security Features
 
+### Server Security
+- **Helmet.js Protection**
+  - Sets secure HTTP headers
+  - Content Security Policy implementation
+  - XSS protection
+  - Prevention of clickjacking
+  - MIME sniffing prevention
+  - Customized security directives
+
+- **HTTP Parameter Pollution (HPP) Protection**
+  - Prevents parameter pollution attacks
+  - Protects against manipulated query parameters
+
 ### User Authentication & Verification
 - **Two-Factor Authentication (2FA)**
   - Email OTP verification (5-digit code)
@@ -18,11 +31,24 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
   - OTP resend functionality with cooldown timer
 
 ### Password Security
+- **Have I Been Pwned Integration**
+  - Checks passwords against known data breaches
+  - K-anonymity implementation for privacy protection
+  - Prevents use of compromised passwords
+  - Shows breach count to users
+
+- **Password Strength Evaluation (zxcvbn)**
+  - Advanced password strength scoring
+  - Requires minimum strength score of 3/4
+  - Pattern recognition to prevent weak passwords
+  - Real-time feedback on password quality
+
 - **Strong Password Requirements**
   - Minimum 8 characters
   - Must include uppercase and lowercase letters
   - Must include numbers
   - Must include special characters
+  
 - **Password Protection**
   - Bcrypt hashing for passwords
   - Show/hide password toggle in forms
@@ -33,6 +59,7 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
   - Blocks registration from known disposable email domains
   - Regular updates to disposable email domain database
   - Custom validation patterns
+  
 - **Email Templates**
   - Branded verification emails
   - Welcome emails after verification
@@ -44,10 +71,16 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
   - Required for registration
   - Required for login attempts
   - Required for password reset
+
 - **JWT Authentication**
   - Token-based session management
   - 7-day token expiration
   - Secure token storage
+  
+- **Rate Limiting**
+  - Redis-based storage for distributed rate limiting
+  - Prevents brute force attacks
+  - Configurable limits for sensitive endpoints
 
 ### Phone Number Verification
 - **SMS Integration**
@@ -182,6 +215,9 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
    TWILIO_AUTH_TOKEN=your_twilio_auth_token
    TWILIO_PHONE_NUMBER=your_twilio_phone_number
    ABSTRACT_PHONE_API_KEY=your_abstract_phone_api_key
+   REDIS_HOST=your_redis_host
+   REDIS_PORT=your_redis_port
+   REDIS_PASSWORD=your_redis_password
    ```
 
 6. Start the backend server
@@ -245,6 +281,7 @@ project/
 │   │   │   ├── cart.jsx
 │   │   │   ├── forgotemail.jsx
 │   │   │   ├── login.jsx
+│   │   │   ├── NotFound.jsx
 │   │   │   ├── register.jsx
 │   │   │   ├── otp.jsx
 │   │   │   ├── resetpassword.jsx
@@ -266,6 +303,7 @@ project/
 ├── Backend/                # Backend
 │   ├── api/
 │   │   ├── forgot-otp.js
+│   │   ├── googleauth.js
 │   │   ├── login.js
 │   │   ├── notification.js
 │   │   ├── orders.js
@@ -288,6 +326,7 @@ project/
 │   │   └── user.js
 │   ├── utils/
 │   │   ├──  emailValidator.js
+│   │   ├──  passwordCheck.js
 │   │   └── phoneNumberValidator.js
 │   ├── index.js
 │   └── package.json
@@ -377,6 +416,7 @@ Custom backend API endpoints:
 ![alt text](Projectimages/image-14.png)
 ![alt text](Projectimages/image-15.png)
 ![alt text](Projectimages/image-16.png)
+![alt text](Projectimages/image-17.png)
 
 ## 🚀 Future Enhancements
 
