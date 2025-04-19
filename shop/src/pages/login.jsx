@@ -1,10 +1,13 @@
-import React, { useState, useEffect,useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import { auth, googleProvider } from '../firebase';
+import { signInWithPopup } from 'firebase/auth';
+import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -15,20 +18,65 @@ function Login() {
   const [captchaValue, setCaptchaValue] = useState(null);
   const navigate = useNavigate();
   const recaptchaRef = useRef(null);
-  
+
   useEffect(() => {
-      const token = localStorage.getItem('token');
-      if(!token) return
-            const decoded = jwtDecode(token);
-            const user = decoded?.isVerified;
-         
-      if( token && user){
-          navigate('/products')
+    const token = localStorage.getItem('token');
+    if (!token) return
+    const decoded = jwtDecode(token);
+    const user = decoded?.isVerified;
+
+    if (token && user) {
+      navigate('/products')
+    }
+    else if (token && !user) {
+      navigate('/otp')
+    }
+  }, [])
+
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const result = await signInWithPopup(auth, googleProvider);
+
+      const user = result.user;
+      const googleUser = {
+        email: user.email,
+      };
+
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/google-auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(googleUser),
+      });
+
+      const resData = await res.json();
+      if (!resData.success) {
+        if(resData?.message === 'User Not Verified') {
+          setError(resData.message);
+          localStorage.setItem("token", resData.token);
+          window.dispatchEvent(new Event('auth-change'));
+          setTimeout(() => navigate('/otp'), 1000);
+          return;
+        }
+        setError(resData.message);
+        setLoading(false);
+        return;
       }
-      else if( token && !user){
-          navigate('/otp')
-      }
-    }, [])
+
+      localStorage.setItem("token", resData.token);
+      window.dispatchEvent(new Event('auth-change'));
+      navigate("/products");
+
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      setError('Google sign-in failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,9 +93,9 @@ function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: captchaValue }),
       });
-  
+
       const verifyData = await verifyResponse.json();
-  
+
       if (!verifyData.success) {
         setError('reCAPTCHA verification failed. Please try again.');
         setLoading(false);
@@ -55,13 +103,13 @@ function Login() {
         setCaptchaValue(null);
         return;
       }
-      const res=await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`,{
-        method:'POST',
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username,password }),
+        body: JSON.stringify({ username, password }),
       })
-      const resData=await res.json()
-      if(!resData.success){
+      const resData = await res.json()
+      if (!resData.success) {
         setError(resData.message);
         setLoading(false);
         recaptchaRef.current?.reset();
@@ -98,6 +146,25 @@ function Login() {
               {error}
             </div>
           )}
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
+            >
+              <FontAwesomeIcon icon={faGoogle} className="mr-2 text-red-500" />
+              {loading ? 'Processing...' : 'Sign in with Google'}
+            </button>
+          </div>
+          <div className="mt-4 relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
@@ -138,12 +205,12 @@ function Login() {
                 </button>
               </div>
             </div>
-            
+
 
             <div className="flex justify-center">
 
               <ReCAPTCHA
-              ref={recaptchaRef}
+                ref={recaptchaRef}
                 sitekey={import.meta.env.VITE_REACT_APP_SITE_KEY}
                 onChange={(value) => {
                   setCaptchaValue(value);

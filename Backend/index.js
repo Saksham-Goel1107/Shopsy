@@ -12,6 +12,7 @@ import loginRouter from "./api/login.js"
 import otpRouter from "./api/otp.js"
 import forgotemailRouter from "./api/forgot-otp.js"
 import resetPasswordRouter from "./api/reset-password.js"
+import googleAuthRouter from "./api/googleauth.js"; 
 
 dotenv.config();
 
@@ -63,6 +64,7 @@ app.use("/api/login", loginRouter);
 app.use("/api/otp", otpRouter);
 app.use("/api/forgotemail", forgotemailRouter);
 app.use("/api/resetpassword", resetPasswordRouter);
+app.use("/api/google-auth", googleAuthRouter); 
 
 app.get("/", (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
@@ -80,6 +82,7 @@ app.get("/", (req, res) => {
       '/api/otp',
       '/api/forgotemail',
       "/api/resetpassword",
+      "/api/google-auth",
     ]
   });
 });
