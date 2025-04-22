@@ -13,7 +13,6 @@ import {
 
 function Cart() {
   const [cart, setCart] = useState([]);
-  const [showConfirmation, setShowConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [locationStatus, setLocationStatus] = useState(null);
@@ -174,6 +173,7 @@ function Cart() {
     } catch (error) {
       setLocationStatus('incomplete');
       setShowAddressConfirmation(true);
+      console.error("Error fetching location data:", error);
       return { coordinates: { latitude, longitude } };
     }
   };
@@ -295,6 +295,7 @@ const proceedWithCheckout = async (locationData) => {
     }
   } catch (error) {
     setError('Failed to complete checkout. Please try again.');
+    console.error("Checkout error:", error);
   } finally {
     setLoading(false);
   }
@@ -304,12 +305,6 @@ const proceedWithCheckout = async (locationData) => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      {showConfirmation && (
-        <div className="fixed top-20 right-4 bg-green-500 text-white p-4 rounded shadow-lg">
-          Order placed successfully!
-        </div>
-      )}
-      
       <h2 className="text-2xl font-bold mb-6">Your Cart</h2>
       
       {cart.length === 0 ? (

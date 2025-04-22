@@ -1,0 +1,19 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JS-INFLIGHT-6095116:
+    - '*':
+        reason: >-
+          Memory leak vulnerability requires local access to exploit.
+          No fixed version available as package is unmaintained.
+          Risk is acceptable for our use case.
+        expires: 2026-04-22T00:00:00.000Z
+  SNYK-JS-ZXCVBN-3257741:
+    - '*':
+        reason: >-
+          ReDoS vulnerability in password strength checker.
+          No fixed version available as package is unmaintained.
+          Will implement input validation to mitigate risk.
+        expires: 2026-04-22T00:00:00.000Z
+patch: {}

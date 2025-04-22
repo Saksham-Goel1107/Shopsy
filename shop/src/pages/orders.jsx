@@ -81,6 +81,7 @@ function Orders() {
       };
       return new Date(dateString).toLocaleDateString(undefined, options);
     } catch (e) {
+      console.error('Error formatting date:', e);
       return 'Invalid date';
     }
   };

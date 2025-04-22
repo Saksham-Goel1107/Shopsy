@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useCallback } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ProductListing from './pages/productListing';
 import ProductDetail from './pages/productDetails';
@@ -45,7 +45,7 @@ function App() {
     }
   }
 
-  const verifyToken = async () => {
+  const verifyToken = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) {
       setIsAuthenticated(false);
@@ -89,7 +89,7 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     requestPermission();
@@ -106,7 +106,7 @@ function App() {
       window.removeEventListener('auth-change', handleAuthChange);
       window.removeEventListener('storage', handleAuthChange);
     };
-  }, [navigate]);
+  }, [verifyToken, navigate]);
 
   if (isLoading) {
     return <div className="container mx-auto p-6 text-center">Loading...</div>;

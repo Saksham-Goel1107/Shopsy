@@ -55,6 +55,7 @@ function ForgotEmail() {
       navigate('/resetpassword', { state: { email } });
     } catch (err) {
       setError('Something went wrong. Please try again.');
+      console.error(err);
       recaptchaRef.current?.reset();
       setCaptchaValue(null);
     } finally {

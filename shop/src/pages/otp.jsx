@@ -1,5 +1,5 @@
 import React, { useState, useEffect,useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faExclamationTriangle,
@@ -21,7 +21,6 @@ function OTP() {
   const [timer, setTimer] = useState(60);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const [captchaValue, setCaptchaValue] = useState(null);
   const recaptchaRef = useRef(null);
 
@@ -251,6 +250,7 @@ function OTP() {
       if (!data.success) {
         setError(data.message);
         setCaptchaValue(null);
+        recaptchaRef.current?.reset();
         setLoading(false);
         return;
       }
@@ -265,6 +265,7 @@ function OTP() {
       console.error('OTP verification error:', error);
       setError('Verification failed. Please try again.');
       setCaptchaValue(null);
+      recaptchaRef.current?.reset();
       setLoading(false);
     } finally {
       setLoading(false);

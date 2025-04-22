@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faStore, faClock, faReceipt, faBell, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
@@ -15,6 +15,52 @@ function Success() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('order_id');
   const paymentSessionId = searchParams.get('session_id');
+  
+  const sendLocalNotification = useCallback((orderNum) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        const notification = new Notification('Order Confirmed! 🛍️', {
+          body: `Your order #${orderNum} has been successfully processed. Thank you for shopping with us!`,
+          icon: '/icon.png', 
+          badge: '/icon.png',
+          timestamp: Date.now(),
+          requireInteraction: true
+        });
+        
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+          if (orderId) {
+            navigate(`/orders/${orderId}`);
+          }
+        };
+      } catch (error) {
+        console.error("Error creating notification:", error);
+      }
+    }
+  }, [navigate, orderId]);
+  
+  const sendCloudNotification = useCallback(async (orderNum, token) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/send-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          token,
+          title: 'Order Confirmed! 🛍️',
+          body: `Your order #${orderNum} has been successfully processed. Thank you for shopping with us!`,
+          icon: '/icon.png'
+        })
+      });
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error sending notification via server:", error);
+      return { success: false, error: error.message };
+    }
+  }, []);
 
   useEffect(() => {
     const checkoutInitiated = sessionStorage.getItem('checkoutInitiated');
@@ -41,7 +87,7 @@ function Success() {
             });
             
             if (response.ok) {
-              const data = await response.json();
+              await response.json();
             }
           }
         } catch (error) {
@@ -102,7 +148,7 @@ function Success() {
     
     checkPermissionAndSendNotification();
     
-    const unsubscribe = onMessage(messaging, (payload) => {
+    const unsubscribe = onMessage(messaging, () => {
     });
     
     const redirectTimer = setTimeout(() => {
@@ -124,7 +170,7 @@ function Success() {
       clearInterval(countdownInterval);
       unsubscribe();
     };
-  }, [navigate, orderId, paymentSessionId, orderNumber]);
+  }, [navigate, orderId, paymentSessionId, orderNumber, sendLocalNotification, sendCloudNotification]);
 
   if (!isValidAccess) {
     return (
@@ -141,52 +187,6 @@ function Success() {
     );
   }
   
-  const sendLocalNotification = (orderNum) => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      try {
-        const notification = new Notification('Order Confirmed! 🛍️', {
-          body: `Your order #${orderNum} has been successfully processed. Thank you for shopping with us!`,
-          icon: '/icon.png', 
-          badge: '/icon.png',
-          timestamp: Date.now(),
-          requireInteraction: true
-        });
-        
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
-          if (orderId) {
-            navigate(`/orders/${orderId}`);
-          }
-        };
-      } catch (error) {
-        console.error("Error creating notification:", error);
-      }
-    }
-  };
-  
-  const sendCloudNotification = async (orderNum, token) => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/send-notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          token,
-          title: 'Order Confirmed! 🛍️',
-          body: `Your order #${orderNum} has been successfully processed. Thank you for shopping with us!`,
-          icon: '/icon.png'
-        })
-      });
-      
-      return await response.json();
-    } catch (error) {
-      console.error("Error sending notification via server:", error);
-      return { success: false, error: error.message };
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-10 rounded-lg shadow-md max-w-lg w-full text-center">

@@ -1,16 +1,17 @@
+/* global importScripts, firebase */
 importScripts("https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js");
 importScripts(
   "https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"
 );
 
 const firebaseConfig = {
-    apiKey: "${process.env.VITE_FIREBASE_API_KEY}",
-    authDomain: "${process.env.VITE_FIREBASE_AUTH_DOMAIN}",
-    projectId: "${process.env.VITE_FIREBASE_PROJECT_ID}",
-    storageBucket: "${process.env.VITE_FIREBASE_STORAGE_BUCKET}",
-    messagingSenderId: "${process.env.VITE_FIREBASE_MESSAGING_SENDER_ID}",
-    appId: "${process.env.VITE_FIREBASE_APP_ID}",
-    measurementId: "${process.env.VITE_FIREBASE_MEASUREMENT_ID}"
+    apiKey: "AIzaSyBh5GBI9psfjgRHb6bQOhTRlMwAZsSv0so",
+    authDomain: "project1-cf1de.firebaseapp.com",
+    projectId: "project1-cf1de",
+    storageBucket: "project1-cf1de.firebasestorage.app",
+    messagingSenderId: "552644576672",
+    appId: "1:552644576672:web:b81c133aa37b4f2fc450c5",
+    measurementId: "G-3SRM99KDFL",
 };
 
 firebase.initializeApp(firebaseConfig);

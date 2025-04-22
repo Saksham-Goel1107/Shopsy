@@ -1,5 +1,5 @@
 import React, {useEffect ,useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -34,7 +34,7 @@ function ResetPassword() {
     setTimer((prevTimer) => (prevTimer > 0 ? prevTimer - 1 : 0));
     }, 1000);
     return () => clearInterval(countdown);
-  }, []);
+  }, [email, navigate]);
   if (!email) {
     return null; 
   }
@@ -128,6 +128,7 @@ function ResetPassword() {
       }
     } catch (err) {
       setError('Something went wrong. Please try again.');
+      console.error('Error during password reset:', err);
       recaptchaRef.current?.reset();
       setCaptchaValue(null);
     } finally {
