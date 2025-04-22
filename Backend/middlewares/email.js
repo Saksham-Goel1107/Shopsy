@@ -1,5 +1,5 @@
 import { transporter } from "./email.config.js";
-import { Verification_Email_Template, Welcome_Email_Template, Reseting_Verification_Email_Template, Email_password_change_Template } from "./emailTemplate.js";
+import { Verification_Email_Template, Welcome_Email_Template, Reseting_Verification_Email_Template, Email_password_change_Template,AccountLockNotification_template } from "./emailTemplate.js";
 
 const sendVerificationEmail = async (email, verificationCode) => {
     if (!email || !verificationCode) {
@@ -69,5 +69,30 @@ const sendpasswordchangetemplate = async (email, name) => {
         throw error;
     }
 };
+const sendAccountLockNotification = async (email, name, unlockTime) => {
+    try {
+        const formattedUnlockTime = new Date(unlockTime).toLocaleString('en-IN', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true, 
+            timeZone: 'Asia/Kolkata' 
+          });
+          
+        const response = await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "Account Locked",
+            text: "Your Account Has Been Locked",
+            html: AccountLockNotification_template.replace("{name}", name).replace("{formattedUnlockTime}", formattedUnlockTime),
+        });
+        console.log('Account lock notification email sent successfully', response);
+    } catch (error) {
+        console.error('Error sending account lock notification email:', error);
+        throw error;
+    }
+}
 
-export { sendVerificationEmail, sendWelcomeEmail, sendResetingVerificationEmail, sendpasswordchangetemplate };
+export { sendVerificationEmail, sendWelcomeEmail, sendResetingVerificationEmail, sendpasswordchangetemplate, sendAccountLockNotification };

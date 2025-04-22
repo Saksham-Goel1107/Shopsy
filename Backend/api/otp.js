@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken"
 import {
   sendVerificationEmail,
   sendWelcomeEmail,
+  sendAccountLockNotification,
 } from "../middlewares/email.js";
 import { createClient } from "redis";
 import RedisStore from "rate-limit-redis";
@@ -18,6 +19,7 @@ const redisClient = createClient({
   socket: {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
+    connectTimeout: 5000,
   },
   password: process.env.REDIS_PASSWORD,
 });
@@ -51,7 +53,7 @@ const OtpVerifyLimiter = rateLimit({
 
 const OtpResendingLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
-  max: 2,
+  max: 3,
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisStore({
@@ -77,6 +79,40 @@ router.post('/verify', OtpVerifyLimiter, async (req, res) => {
       message: "User not found"
     });
   }
+  if (user.blockedTill && new Date() < new Date(user.blockedTill)) {
+          const remainingTime = Math.ceil((new Date(user.blockedTill) - new Date()) / (1000 * 60 * 60));
+          return res.status(403).json({
+              success: false,
+              message: `Your account is temporarily locked. Please try again in approximately ${remainingTime} hour(s).`
+          });
+      }
+      if (user.falseAttempt >= 5 && user.blockedTill && new Date() > new Date(user.blockedTill)) {
+          await user.updateOne(
+              { _id: user._id },
+              { falseAttempt: 0, blockedTill: null }
+          );
+      }
+      if (user.falseAttempt >= 5 && (!user.blockedTill || new Date() > new Date(user.blockedTill))) {
+          const blockUntil = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+          await user.updateOne(
+              { _id: user._id },
+              { blockedTill: blockUntil }
+          );
+          try {
+              await sendAccountLockNotification(
+                  user.email, 
+                  user.username, 
+                  blockUntil
+              );
+          } catch (error) {
+              console.error("Failed to send account lock notification:", error);
+          }
+          
+          return res.status(403).json({
+              success: false,
+              message: "Your account has been temporarily locked due to multiple failed login attempts. Please try again after 24 hours."
+          });
+      }
 
   if (user.verifiedTill < new Date()) {
     return res.status(400).json({
@@ -86,6 +122,10 @@ router.post('/verify', OtpVerifyLimiter, async (req, res) => {
   }
 
   if (user.Email_otp !== parseInt(emailOtp)) {
+     await user.updateOne(
+                { _id: user._id },
+                { $inc: { falseAttempt: 1 } }
+            );
     return res.status(400).json({
       success: false,
       message: "Invalid Email OTP"
@@ -93,11 +133,17 @@ router.post('/verify', OtpVerifyLimiter, async (req, res) => {
   }
 
   if (user.Phone_otp !== parseInt(phoneOtp)) {
+     await user.updateOne(
+                { _id: user._id },
+                { $inc: { falseAttempt: 1 } }
+            );
     return res.status(400).json({
       success: false,
       message: "Invalid Phone OTP"
     });
   }
+  await user.updateOne({ _id: user._id }, { falseAttempt: 0, blockedTill: undefined });
+  
 
   user.isVerified = true;
   user.Email_otp = undefined;
@@ -143,7 +189,19 @@ router.post('/resend', OtpResendingLimiter, async (req, res) => {
         message: "User not found"
       });
     }
-
+    if (user.blockedTill && new Date() < new Date(user.blockedTill)) {
+      const remainingTime = Math.ceil((new Date(user.blockedTill) - new Date()) / (1000 * 60 * 60));
+      return res.status(403).json({
+          success: false,
+          message: `Your account is temporarily locked. Please try again in approximately ${remainingTime} hour(s).`
+      });
+  }
+  if (user.falseAttempt >= 5 && user.blockedTill && new Date() > new Date(user.blockedTill)) {
+      await user.updateOne(
+          { _id: user._id },
+          { falseAttempt: 0, blockedTill: null }
+      );
+  }
     const newotp = Math.floor(10000 + Math.random() * 90000);
     const newotp2 = Math.floor(10000 + Math.random() * 90000);
     const verifiedTill = new Date(Date.now() + 24*60 * 60 * 1000);

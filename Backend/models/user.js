@@ -41,6 +41,13 @@ const userSchema = new mongoose.Schema({
     verifiedTill:{
         type:Date,
     },
+    falseAttempt:{
+        type:Number,
+        default:0,
+    },
+    blockedTill:{
+        type:Date,
+    },
     ValidTill:{
         type:Date,
         index:{expireAfterSeconds:0,

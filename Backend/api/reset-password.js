@@ -1,7 +1,7 @@
 import express from "express";
 import User from "../models/user.js";
 import bcrypt from "bcrypt";
-import { sendpasswordchangetemplate,sendResetingVerificationEmail } from "../middlewares/email.js";
+import { sendpasswordchangetemplate,sendResetingVerificationEmail,sendAccountLockNotification } from "../middlewares/email.js";
 import { createClient } from "redis";
 import RedisStore from "rate-limit-redis";
 import rateLimit from "express-rate-limit";
@@ -14,6 +14,7 @@ const redisClient = createClient({
   socket: {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
+    connectTimeout: 5000,
   },
   password: process.env.REDIS_PASSWORD,
 });
@@ -45,6 +46,24 @@ const resetOtpLimiter = rateLimit({
   },
 });
 
+const resendOtpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new RedisStore({
+    sendCommand: (...args) => redisClient.sendCommand(args),
+    prefix: "resend-otp-rate-limit:",
+  }),
+  handler: (req, res) => {
+    return res.status(429).json({
+      success: false,
+      message:
+        "Too many resend request attempts from this IP, please try again later.",
+    });
+  },
+});
+
 router.post("/", resetOtpLimiter, async (req, res) => {
   const { email, otp, password } = req.body;
   if (!email || !otp || !password) {
@@ -61,18 +80,58 @@ router.post("/", resetOtpLimiter, async (req, res) => {
         message: "No such user exists",
       });
     }
+
+    if (user.blockedTill && new Date() < new Date(user.blockedTill)) {
+      const remainingTime = Math.ceil((new Date(user.blockedTill) - new Date()) / (1000 * 60 * 60));
+      return res.status(403).json({
+          success: false,
+          message: `Your account is temporarily locked. Please try again in approximately ${remainingTime} hour(s).`
+      });
+  }
+  if (user.falseAttempt >= 5 && user.blockedTill && new Date() > new Date(user.blockedTill)) {
+      await user.updateOne(
+          { _id: user._id },
+          { falseAttempt: 0, blockedTill: null }
+      );
+  }
+  if (user.falseAttempt >= 5 && (!user.blockedTill || new Date() > new Date(user.blockedTill))) {
+      const blockUntil = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      await user.updateOne(
+          { _id: user._id },
+          { blockedTill: blockUntil }
+      );
+      try {
+        await sendAccountLockNotification(
+            user.email, 
+            user.username, 
+            blockUntil
+        );
+    } catch (error) {
+        console.error("Failed to send account lock notification:", error);
+    }
+      return res.status(403).json({
+          success: false,
+          message: "Your account has been temporarily locked due to multiple failed login attempts. Please try again after 24 hours."
+      });
+  }
+
+  if (Date.now() > user.verifiedTill) {
+    return res.status(400).json({
+      success: false,
+      message: "Otp Expired Please try again by resending a new Otp",
+    });
+  }
     if (parseInt(otp) !== user.Email_otp) {
+      await user.updateOne(
+        { _id: user._id },
+        { $inc: { falseAttempt: 1 } }
+    );
       return res.status(400).json({
         success: false,
         message: "Please Enter Valid Otp",
       });
     }
-    if (Date.now() > user.verifiedTill) {
-      return res.status(400).json({
-        success: false,
-        message: "Otp Expired Please try again by resending a new Otp",
-      });
-    }
+    await user.updateOne({ _id: user._id }, { falseAttempt: 0, blockedTill: undefined });
     const result = zxcvbn(password);
     if (result.score < 3) {
       return res.status(400).json({
@@ -119,7 +178,7 @@ router.post("/", resetOtpLimiter, async (req, res) => {
   }
 });
 
-router.post('/resend',resetOtpLimiter, async (req, res) => {
+router.post('/resend', resendOtpLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     
@@ -138,6 +197,20 @@ router.post('/resend',resetOtpLimiter, async (req, res) => {
         message: "User not found"
       });
     }
+
+    if (user.blockedTill && new Date() < new Date(user.blockedTill)) {
+      const remainingTime = Math.ceil((new Date(user.blockedTill) - new Date()) / (1000 * 60 * 60));
+      return res.status(403).json({
+          success: false,
+          message: `Your account is temporarily locked. Please try again in approximately ${remainingTime} hour(s).`
+      });
+  }
+  if (user.falseAttempt >= 5 && user.blockedTill && new Date() > new Date(user.blockedTill)) {
+      await user.updateOne(
+          { _id: user._id },
+          { falseAttempt: 0, blockedTill: null }
+      );
+  }
 
     const newotp = Math.floor(10000 + Math.random() * 90000);
     const verifiedTill = new Date(Date.now() + 10 * 60 * 1000);

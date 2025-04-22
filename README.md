@@ -23,12 +23,24 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
   - Prevents parameter pollution attacks
   - Protects against manipulated query parameters
 
+- **MongoDB Sanitization**
+  - Prevents NoSQL injection attacks
+  - Sanitizes user-supplied data before queries
+  - Removes MongoDB operators ($, .) from request query parameters
+  - Secures all database interactions
+
 ### User Authentication & Verification
 - **Two-Factor Authentication (2FA)**
   - Email OTP verification (5-digit code)
   - SMS OTP verification (5-digit code)
   - 24-hour OTP validity period
   - OTP resend functionality with cooldown timer
+
+- **Account Lockout Protection**
+  - Automatic account locking after 5 failed login attempts
+  - 24-hour lockout period with automatic unlock functionality
+  - Email notifications for account lockouts with unlock time details
+  - Prevents brute force attacks across all authentication endpoints
 
 ### Password Security
 - **Have I Been Pwned Integration**
@@ -65,6 +77,7 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
   - Welcome emails after verification
   - Password reset confirmation emails
   - Password change notification emails
+  - Account lockout notification emails with unlock time details
 
 ### Additional Security Measures
 - **reCAPTCHA Integration**
@@ -102,6 +115,7 @@ Shop is a modern, responsive e-commerce website built with React. The applicatio
 
 - **User Authentication** - Secure login and registration system with token-based authentication and reCAPTCHA verification
 - **Two-Factor Authentication** - OTP verification via both email and SMS
+- **Account Security** - Automatic account lockout after multiple failed login or reset attempts with email notifications
 - **Disposable Email Prevention** - Block registration with temporary/disposable email addresses
 - **Email Verification** - OTP-based email verification for new accounts
 - **SMS Verification** - Phone number verification using SMS OTP
@@ -405,6 +419,8 @@ Custom backend API endpoints:
 ![alt text](Projectimages/Emailotpimage.jpg)
 ![alt text](Projectimages/image-2.png)
 ![alt text](Projectimages/image-5.png)
+![alt text](Projectimages/image-18.png)
+![alt text](Projectimages/image.png)
 ![alt text](Projectimages/image-7.png)
 ![alt text](Projectimages/image-8.png)
 ![alt text](Projectimages/image3.png)

@@ -16,7 +16,15 @@ import googleAuthRouter from "./api/googleauth.js";
 import verifyTokenRouter from "./api/verifytoken.js";
 import helmet from "helmet";
 import hpp from 'hpp';
+import MongoSanitize from "express-mongo-sanitize";
 
+const app = express();
+app.use(express.json());
+app.use((req, res, next) => {
+  if (req.body) MongoSanitize.sanitize(req.body);
+  if (req.query) MongoSanitize.sanitize(req.query); 
+  next();
+});
 dotenv.config();
 
 mongoose.connect(process.env.MONGODB_URI, {
@@ -32,17 +40,17 @@ mongoose.connect(process.env.MONGODB_URI, {
 const allowedOrigins = 
   process.env.NODE_ENV==='production' ? ['https://shopify-tau-seven.vercel.app'] : ['http://localhost:5173','https://shopify-tau-seven.vercel.app']
  
-const app = express();
+
 
 app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), (req, res) => {
   req.rawBody = req.body;
   stripeRouter.post('/webhook', req, res);
 });
 
-app.use(express.json());
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if ((process.env.NODE_ENV === 'production' && origin && allowedOrigins.includes(origin)) ||
+    (process.env.NODE_ENV !== 'production' && (!origin || allowedOrigins.includes(origin)))) {
       callback(null, true);
     } else {
       console.log(`Origin ${origin} not allowed by CORS`);

@@ -14,6 +14,7 @@ const redisClient = createClient({
     socket: {
         host: process.env.REDIS_HOST,
         port: process.env.REDIS_PORT ,
+        connectTimeout: 5000,
     },
     password: process.env.REDIS_PASSWORD ,
 });
@@ -57,6 +58,20 @@ router.post("/",GoogleloginLimiter, async (req, res) => {
 
     let existingUser = await User.findOne({ email });
 
+    if (existingUser.blockedTill && new Date() < new Date(existingUser.blockedTill)) {
+            const remainingTime = Math.ceil((new Date(existingUser.blockedTill) - new Date()) / (1000 * 60 * 60));
+            return res.status(403).json({
+                success: false,
+                message: `Your account is temporarily locked. Please try again in approximately ${remainingTime} hour(s).`
+            });
+        }
+        if (existingUser.falseAttempt >= 5 && existingUser.blockedTill && new Date() > new Date(existingUser.blockedTill)) {
+            await existingUser.updateOne(
+                { _id: existingUser._id },
+                { falseAttempt: 0, blockedTill: null }
+            );
+        }
+
     if (existingUser && existingUser.isVerified === true) {
       const token = jwt.sign(
         {
@@ -67,6 +82,9 @@ router.post("/",GoogleloginLimiter, async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "7d" }
       );
+      existingUser.falseAttempt = 0;
+      existingUser.blockedTill = undefined; 
+      await existingUser.save();  
       return res.status(200).json({
         success: true,
         message: "Login successful",

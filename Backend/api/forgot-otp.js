@@ -51,6 +51,19 @@ router.post('/', forgotrequestLimiter, async (req, res) => {
                 message: "No Such User Exists"
             })
         }
+        if (user.blockedTill && new Date() < new Date(user.blockedTill)) {
+            const remainingTime = Math.ceil((new Date(user.blockedTill) - new Date()) / (1000 * 60 * 60));
+            return res.status(403).json({
+                success: false,
+                message: `Your account is temporarily locked. Please try again in approximately ${remainingTime} hour(s).`
+            });
+        }
+        if (user.falseAttempt >= 5 && user.blockedTill && new Date() > new Date(user.blockedTill)) {
+            await user.updateOne(
+                { _id: user._id },
+                { falseAttempt: 0, blockedTill: null }
+            );
+        }
         const Otp = Math.floor(10000 + Math.random() * 90000)
         const VerifiedTill = Date.now() + 10 * 60 * 1000
         user.Email_otp = Otp

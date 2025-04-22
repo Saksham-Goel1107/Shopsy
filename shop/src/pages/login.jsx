@@ -13,6 +13,7 @@ function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [Googleloading, setGoogleloading] = useState(false);
   const [error, setError] = useState('');
   const [captchaValue, setCaptchaValue] = useState(null);
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ function Login() {
 
   const handleGoogleSignIn = async () => {
     try {
-      setLoading(true);
+      setGoogleloading(true);
       setError('');
 
       const result = await signInWithPopup(auth, googleProvider);
@@ -89,7 +90,7 @@ function Login() {
           return;
         }
         setError(resData.message);
-        setLoading(false);
+        setGoogleloading(false);
         return;
       }
 
@@ -101,7 +102,7 @@ function Login() {
       console.error('Google sign-in error:', error);
       setError('Google sign-in failed. Please try again.');
     } finally {
-      setLoading(false);
+      setGoogleloading(false);
     }
   };
 
@@ -177,11 +178,11 @@ function Login() {
             <button
               type="button"
               onClick={handleGoogleSignIn}
-              disabled={loading}
-              className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
+              disabled={loading || Googleloading}
+              className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed"
             >
               <FontAwesomeIcon icon={faGoogle} className="mr-2 text-red-500" />
-              {loading ? 'Processing...' : 'Sign in with Google'}
+              {Googleloading ? 'Processing...' : 'Sign in with Google'}
             </button>
           </div>
           <div className="mt-4 relative">
@@ -204,7 +205,11 @@ function Login() {
                 type="text"
                 required
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const filteredValue = value.replace(/[^\w]/g, ''); 
+                  setUsername(filteredValue);
+                }}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -231,6 +236,7 @@ function Login() {
                   <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
                 </button>
               </div>
+              <p className='text-gray-400 text-xs text-center cursor-default'>Maximum of 5 Attempts or the Account will be Blocked for 24 hrs </p>
             </div>
 
 
@@ -248,8 +254,8 @@ function Login() {
             <div>
               <button
                 type="submit"
-                disabled={loading || !captchaValue}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 cursor-pointer"
+                disabled={loading || !captchaValue || Googleloading}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
                 {loading ? 'Logging in...' : 'Login'}
               </button>

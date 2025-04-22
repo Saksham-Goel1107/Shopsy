@@ -201,14 +201,15 @@ function ResetPassword() {
                     onChange={(e) => handleOtpChange(e.target, index)}
                     onKeyDown={(e) => handleOtpKeyDown(e, index)}
                     onFocus={(e) => e.target.select()}
-                    className="w-12 h-12 text-center text-xl border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-12 h-12 text-center text-xl border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:cursor-not-allowed"
                     aria-label={`OTP digit ${index + 1}`}
                     disabled={loading}
                     required
                   />
                 ))}
               </div>
-            </div>
+              <p className='text-gray-400 text-xs text-center cursor-default'>Maximum of 5 Attempts or the Account will be Blocked for 24 hrs </p>
+              </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -221,7 +222,7 @@ function ResetPassword() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:cursor-not-allowed"
                   disabled={loading}
                 />
                 <button
@@ -270,7 +271,7 @@ function ResetPassword() {
               <button
                 type="submit"
                 disabled={loading || !captchaValue}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 cursor-pointer"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
                 {loading ? 'Resetting...' : 'Reset Password'}
               </button>
@@ -280,7 +281,7 @@ function ResetPassword() {
             <button
               onClick={handleResendOTP}
               disabled={timer > 0 || isResending}
-              className={`text-sm font-medium cursor-pointer ${
+              className={`text-sm font-medium cursor-pointer disabled:cursor-not-allowed ${
                 timer > 0 || isResending
                   ? 'text-gray-400 cursor-not-allowed'
                   : 'text-blue-600 hover:text-blue-800'

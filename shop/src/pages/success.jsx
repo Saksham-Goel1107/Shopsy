@@ -42,7 +42,6 @@ function Success() {
             
             if (response.ok) {
               const data = await response.json();
-              console.log("Order details:", data.order);
             }
           }
         } catch (error) {
@@ -104,7 +103,6 @@ function Success() {
     checkPermissionAndSendNotification();
     
     const unsubscribe = onMessage(messaging, (payload) => {
-      console.log('Message received:', payload);
     });
     
     const redirectTimer = setTimeout(() => {

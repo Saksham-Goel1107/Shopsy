@@ -415,10 +415,11 @@ function OTP() {
               <button
                 type="submit"
                 disabled={loading || !captchaValue}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 cursor-pointer"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
                 {loading ? 'Verifying...' : 'Verify OTP'}
               </button>
+            <p className='text-gray-400 text-xs text-center cursor-default'>Maximum of 5 Attempts or the Account will be Blocked for 24 hrs </p>
             </div>
           </form>
 
@@ -426,7 +427,7 @@ function OTP() {
             <button
               onClick={handleResendOTP}
               disabled={timer > 0 || isResending}
-              className={`text-sm font-medium cursor-pointer ${
+              className={`text-sm font-medium cursor-pointer disabled:cursor-not-allowed ${
                 timer > 0 || isResending
                   ? 'text-gray-400 cursor-not-allowed'
                   : 'text-blue-600 hover:text-blue-800'

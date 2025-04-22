@@ -493,5 +493,149 @@ const Email_password_change_Template = `
   </html>
 `;
 
+const AccountLockNotification_template=`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Security Alert</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .header {
+            background-color: #c0392b;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 25px;
+            line-height: 1.8;
+        }
+        .message {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            margin: 20px 0;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            padding: 15px;
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+            border-top: 1px solid #ddd;
+        }
+        p {
+            margin: 0 0 15px;
+        }
+        .contact-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .contact-btn {
+            display: flex;
+            align-items: center;
+            padding: 8px 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #555;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .contact-btn:hover {
+            background-color: #e9ecef;
+            border-color: #bbb;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">⚠️ Security Alert</div>
+    <div class="content">
+        <p class="message">Hello {name},</p>
+        <p>We have detected unusual and potentially malicious activity associated with your account. As a precautionary step to protect your data, your account has been <strong>temporarily locked for 24 hours</strong>.</p>
 
-export { Verification_Email_Template, Welcome_Email_Template, Reseting_Verification_Email_Template, Email_password_change_Template };
+        <p><strong>What could be the Reasons:</strong></p>
+        <ul>
+            <li>Multiple failed login attempts</li>
+            <li>Suspicious password reset or OTP requests</li>
+        </ul>
+
+        <p><strong>Your account will be automatically unlocked at:</strong><br/>
+            <span style="color: #555;">{formattedUnlockTime}</span>
+        </p>
+
+        <p><strong>Next steps:</strong></p>
+        <ul>
+            <li>Once unlocked, update your password immediately</li>
+            <li>Review recent activity for any unauthorized access</li>
+        </ul>
+
+        <p>If you did not attempt these actions or suspect unauthorized access, please <strong>reset your password immediately</strong> and contact our support team for further assistance.</p>
+
+        <a href="https://shopify-tau-seven.vercel.app/products" class="button">Reset Password</a>
+
+        <p>Thank you for your attention to this matter. Your security is our highest priority.</p>
+
+        <div class="contact-buttons">
+            <a href="mailto:sakshamgoel1107@gmail.com" class="contact-btn">
+                <span>Email Us</span>
+            </a>
+            <a href="https://github.com/Saksham-Goel1107" class="contact-btn">
+                <span>GitHub</span>
+            </a>
+            <a href="tel:+918882534712" class="contact-btn">
+                <span>Call Us</span>
+            </a>
+        </div>
+    </div>
+    <div class="footer">
+        <p>&copy; ${new Date().getFullYear()} Saksham-Goel1107. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>
+
+`
+
+
+export { Verification_Email_Template, Welcome_Email_Template, Reseting_Verification_Email_Template, Email_password_change_Template,AccountLockNotification_template };
