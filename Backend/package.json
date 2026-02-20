@@ -26,7 +26,7 @@
     "libphonenumber-js": "^1.12.7",
     "mongoose": "^8.13.2",
     "node-fetch": "^3.3.2",
-    "nodemailer": "^6.10.1",
+    "nodemailer": "^7.0.11",
     "rate-limit-redis": "^4.2.0",
     "redis": "^4.7.0",
     "stripe": "^18.0.0",
